@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="天笑秘密基地">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ff6699">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuWkqeesuOOBrue6geWvhuWfuuWcsyIsCiAgInNob3J0X25hbWUiOiAi5aSp56yY5Z+65ZywIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiI2ZmNjY5OSIsCiAgImRlc2NyaXB0aW9uIjogIuWkqeesuOOBrue6geWvhuWfuuWcsyAtIOa4uOaIj+S4k+WxnuWIhuS6q+W5s+WPsCIsCiAgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0l4TWpnaUlHaGxhV2RvZEQwaU1USTRJajQ4Y21WamRDQjNhV1IwYUQwaU1USTRJaUJvWldsbmFIUTlJakV5T0NJZ2NuZzlJakl3SWlCbWFXeHNQU0lqWm1ZMk5qazVJaTgrUEM5eVpXTjBQangwWlhoMElIZzlJall5SWlCNVBTSTJOQ0lnWm05dWRDMXphWHBsUFNJME1DSWdabWxzYkQwaUkyWm1abVptWmlJK/CfjIY8TDNSbGVIUStQQzl6ZG1jKyIsCiAgICAgICJzaXplcyI6ICIxMjh4MTI4IiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsCiAgICAgICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSIKICAgIH0KICBdCn0=">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjIwIiBmaWxsPSIjZmY2Njk5Ii8+PHRleHQgeD0iNjQiIHk9IjcwIiBmb250LXNpemU9IjUwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj7wn4yGPC90ZXh0Pjwvc3ZnPg==">
+    <title>天笑の秘密基地</title>
+    <style>
+        :root { --primary: #ff6699; --bg: #f4f5f7; --card: #ffffff; --text: #222; --border: #e3e8ec; --video: #fb7299; --notice: #ff9800; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+        
+        #gateKeeper { position: fixed; inset: 0; background: #fff; z-index: 2000; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 20px; text-align: center; }
+        .gate-box { max-width: 400px; width: 100%; }
+        .disclaimer { font-size: 12px; color: #999; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.6; border: 1px dashed #ddd; }
+        .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
+        .gate-btn { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
+
+        header { flex-shrink: 0; padding: 12px 15px; background: var(--card); border-bottom: 1px solid var(--border); z-index: 100; position: relative; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .site-title { font-size: 18px; font-weight: bold; color: var(--primary); flex: 1; text-align: center; margin-left: 30px; }
+        .login-icon { font-size: 18px; cursor: pointer; color: #ccc; padding: 5px; touch-action: manipulation; }
+
+        #search { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; outline: none; box-sizing: border-box; margin-bottom: 10px; touch-action: manipulation; }
+        
+        #nav { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        #nav::-webkit-scrollbar { display: none; }
+        #nav li { list-style: none; padding: 7px 18px; background: #eee; border-radius: 20px; font-size: 13px; white-space: nowrap; cursor: pointer; color: #555; transition: 0.3s; touch-action: manipulation; }
+        #nav li.active { background: var(--primary); color: #fff; font-weight: 500; }
+        
+        #nav li.notice-tab { background: #fff8e1; color: var(--notice); border: 1px solid var(--notice); }
+        #nav li.notice-tab.active { background: var(--notice); color: #fff; }
+        
+        #nav li.favorite-tab { background: #ffe4f0; color: #ff1493; border: 1px solid #ff69b4; }
+        #nav li.favorite-tab.active { background: #ff1493; color: #fff; }
+
+        main { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+        /* ✨ 关键修复：给 grid 开启弹性布局以支持 order 排序 */
+        .grid { display: flex; flex-direction: column; gap: 20px; max-width: 550px; margin: 0 auto; }
+        
+        .card { background: var(--card); border-radius: 12px; overflow: hidden; display: none; flex-direction: column; position: relative; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .card.active-render { display: flex; } 
+
+        /* ✨ 样式层不再直接写 order，交给 JS 动态分配 */
+        .card.is-pinned { border: 2px solid var(--notice); }
+        .card.is-pinned::before { content: "📌 置顶"; position: absolute; top: 10px; right: 80px; background: var(--notice); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; z-index: 10; font-weight: bold; }
+
+        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #e0e0e0; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; touch-action: pan-y pinch-zoom; }
+        .slider-box img { width: 100%; height: 100%; display: none; object-fit: cover; background: #000; }
+        .slider-box img.active { display: block; }
+        
+        .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
+        .admin-mode .edit-img-btn { display: block; }
+
+        .slide-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4); color: #fff; border: none; width: 40px; height: 50px; cursor: pointer; font-size: 24px; z-index: 5; touch-action: manipulation; }
+        .prev { left: 0; border-radius: 0 8px 8px 0; }
+        .next { right: 0; border-radius: 8px 0 0 8px; }
+        .img-index { position: absolute; bottom: 10px; right: 12px; background: rgba(0,0,0,0.6); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; z-index: 4; }
+
+        .info-box { padding: 15px; display: flex; flex-direction: column; background: #fff; }
+        .g-name { font-size: 17px; font-weight: bold; line-height: 1.4; margin-bottom: 8px; color: #111; outline: none; }
+        .g-tags { font-size: 12px; color: var(--primary); margin-bottom: 12px; outline: none; }
+
+        .link-wrap { position: relative; background: #f8f9fb; border-radius: 8px; border: 1px solid #edf0f5; display: flex; flex-direction: column; }
+        .link-text { font-size: 13px; padding: 12px; color: #333; word-break: break-all; line-height: 1.5; outline: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+        .expanded .link-text { -webkit-line-clamp: initial; display: block; overflow-y: auto; max-height: 300px; color: #333; }
+        .link-actions { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(0,0,0,0.03); }
+        .link-jump-btn { flex: 1; padding: 8px; background: #007bff; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; touch-action: manipulation; }
+        .link-jump-btn:hover { background: #0056b3; }
+        .link-jump-btn:active { transform: scale(0.95); }
+        .admin-mode .link-jump-btn { display: none; }
+        .expand-btn { text-align: right; padding: 5px 12px; font-size: 11px; color: var(--primary); cursor: pointer; border-top: 1px solid rgba(0,0,0,0.03); touch-action: manipulation; }
+
+        /* 修复：管理员模式下显示展开/收起按钮（已删除隐藏规则） */
+
+        .pagination { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 20px 0; padding: 0 10px 80px 10px; }
+        .page-numbers { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .page-item { min-width: 38px; height: 38px; border: 1px solid var(--border); background: #fff; color: #666; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; font-size: 14px; transition: 0.2s; touch-action: manipulation; }
+        .page-item.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold; box-shadow: 0 4px 10px rgba(255,102,153,0.3); }
+        .page-dot { color: #ccc; }
+
+        .page-jump-row { display: flex; align-items: center; gap: 10px; color: #999; font-size: 13px; flex-wrap: wrap; justify-content: center; }
+        .page-jump { width: 90px; height: 36px; border: 1px solid var(--border); border-radius: 8px; padding: 0 10px; font-size: 13px; outline: none; text-align: center; touch-action: manipulation; }
+
+        .side-nav-btn { position: fixed; bottom: 40px; width: 45px; height: 45px; background: rgba(255,255,255,0.9); color: var(--primary); border: 1px solid var(--border); border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; z-index: 150; transition: 0.3s; touch-action: manipulation; }
+        .side-nav-btn:active { transform: scale(0.9); background: var(--primary); color: #fff; }
+        .side-nav-btn.show { display: flex; }
+        #prevPageBtn { left: 15px; }
+        #nextPageBtn { right: 15px; }
+
+        #rocket { position: fixed; right: 15px; bottom: -60px; width: 45px; height: 45px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255,102,153,0.4); cursor: pointer; transition: 0.4s; z-index: 200; font-size: 22px; touch-action: manipulation; }
+        #rocket.show { bottom: 100px; }
+
+        #adminBar { margin-top: 10px; display: none; gap: 10px; padding-top: 12px; border-top: 1px solid #eee; }
+        #adminBar button { flex: 1; cursor: pointer; border: none; border-radius: 8px; padding: 12px; background: var(--primary); color: #fff; font-weight: bold; touch-action: manipulation; }
+        .btn-save { background: #28a745 !important; }
+        .btn-exit { background: #666 !important; }
+
+        .del-btn, .pin-btn, .fav-btn { position: absolute; top: 10px; width: 28px; height: 28px; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 20; cursor: pointer; color: #fff; font-size: 14px; touch-action: manipulation; }
+        .del-btn { right: 10px; background: rgba(255,0,0,0.8); }
+        .pin-btn { right: 45px; background: rgba(255,152,0,0.8); }
+        .fav-btn { right: 80px; background: rgba(255,20,147,0.9); }
+        .fav-btn.favorited { background: rgba(255,20,147,1); font-size: 16px; }
+        .admin-mode .del-btn, .admin-mode .pin-btn { display: flex; }
+        /* 收藏按钮在非管理员模式下也显示 */
+        .fav-btn { display: flex !important; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-box { background: #fff; width: 85%; max-width: 350px; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; }
+        .modal-input { width: 100%; padding: 12px 0; border: none; border-bottom: 1px solid #eee; font-size: 15px; outline: none; margin-bottom: 25px; }
+        .modal-btns { display: flex; gap: 15px; }
+        .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
+        .btn-cancel { background: #f5f5f5; color: #666; }
+        .btn-confirm { background: #eff4ff; color: #3b82f6; }
+    </style>
+</head>
+<body class="view-mode">
+
+<div id="gateKeeper" style="display: flex;">
+    <div class="gate-box">
+        <h2 style="color:var(--primary)">天笑の秘密基地</h2>
+        <div class="disclaimer">
+            <strong>【免责声明】</strong><br>
+            本站所有资源均收集自互联网，仅供学习参考与技术交流，严禁用于任何商业用途。下载后请于24小时内删除。因私自传播、倒卖导致的任何法律纠纷与本站无关。继续访问即代表您同意本协议。
+        </div>
+        <input type="password" id="accessPass" class="gate-input" placeholder="输入天笑的解压暗号">
+        <button class="gate-btn" onclick="verifyAccess()">解锁基地</button>
+    </div>
+</div>
+
+<header>
+    <div class="header-top">
+        <div class="site-title">天笑の秘密基地</div>
+        <div id="entryBtn" class="login-icon" onclick="openLogin()" style="visibility: visible;">🔒</div>
+    </div>
+    <input type="text" id="search" placeholder="🔍 搜搜看..." oninput="refreshUI(1)">
+    <div id="nav">
+        <li class="notice-tab" onclick="filterTab('公告',this)">📢 公告</li>
+        <li class="favorite-tab" onclick="filterTab('收藏',this)">💖 我的收藏</li>
+        <li class="active" onclick="filterTab('all',this)">🌟 全部</li>
+        <li onclick="filterTab('ACT',this)" class="">ACT</li>
+        <li onclick="filterTab('SLG',this)" class="">SLG</li>
+        <li onclick="filterTab('RPG',this)">RPG</li>
+        <li onclick="filterTab('GAL',this)">GAL</li>
+        <li onclick="filterTab('AZ',this)">AZ</li>
+        <li onclick="filterTab('PC',this)">PC</li>
+        <li onclick="filterTab('本子',this)">📚 本子</li>
+        <li onclick="filterTab('其他软件',this)">🛠️ 其他软件</li>
+        <li onclick="filterTab('充电视频',this)" class="video-tab">⚡ 充电视频</li>
+    </div>
+    <div id="adminBar" style="display: none;">
+        <button onclick="addCard()">➕ 新增</button>
+        <button class="btn-save" onclick="savePage()">💾 导出</button>
+        <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
+        <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
+    </div>
+</header>
+
+<main id="mainScroll" onscroll="handleScroll()">
+    <div class="grid" id="box"><div class="card active-render" style="order: 0;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzdpkEYUF6cM2Jr85ZBieEMAASJ0yTkAAu4LaxuvV4BEDZGywkv2XZ4BAAMCAANtAAM6BA.jpeg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzZpkEXvtqDLGP9BfjEj5HcHIGCCVgAC7QtrG69XgEQ-YLy651zIUQEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzhpkEYvWdGnGUb1D5T-gi4Ya6AKZAAC7wtrG69XgETLlj04eJmpiQEAAwIAA3cAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name" contenteditable="false">【A6】Lesson（130MB）</div>
+            <div class="g-tags" contenteditable="false">标签: 安卓 像素 动态 萝莉 体操服</div>
+            <div class="link-wrap">
+                <div class="link-text" contenteditable="false">分卷1<div>https://pan.quark.cn/s/cOc54193691f</div><div>提取码:eR1q</div><div>分卷2</div><div>https://pan.quark.cn/s/681732cс6502</div><div>提取码:M7r2</div><div><br></div><div>解压码:114514</div></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card active-render" style="order: 1;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzNpkENj0Aiwyp6MPz5duaJBSB9eUwAC6AtrG69XgETUUtjXL2PJfQEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzRpkEN2Xm-WRFusvtFaom8HskzCEQAC6QtrG69XgESEsWkVU5NkNwEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzVpkEOWvtMIVoA4zHIYdaJULlWbyQAC6gtrG69XgEQOvkhpIYUvRgEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name" contenteditable="false">【A5】孙笑川传奇（270MB）</div>
+            <div class="g-tags" contenteditable="false">标签: 安卓 RPG 猎奇</div>
+            <div class="link-wrap">
+                <div class="link-text" contenteditable="false">https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb<div>提取码:kfjb</div></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card active-render" style="order: 2;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZy9pkEIEUaiSrjnNMj0RDcJcl7zS0AAC4wtrG69XgERCZbLBl-KeLQEAAwIAA3gAAzoE.webp">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzBpkEIXB6ivQIYZrANxPB-zs7ZTGwAC5AtrG69XgERj5z3-uMFzvAEAAwIAA3gAAzoE.webp" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzFpkEIs2Aof654RXR90sz3XLbBwqgAC5QtrG69XgESg24IZkAxbCAEAAwIAA3gAAzoE.webp" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name" contenteditable="false">【A4】kyuuko9（40MB）</div>
+            <div class="g-tags" contenteditable="false">标签: PC 像素 动态 萝莉 SLG</div>
+            <div class="link-wrap">
+                <div class="link-text" contenteditable="false">https://pan.quark.cn/s/92010f612c22?pwd=pa2V<div>提取码：pa2V</div></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card active-render" style="order: 3;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZyxpkD9UZ-aFW_EYmu6LHMoYp6ldlwAC4AtrG69XgES9V59981NhZQEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZy1pkD-ApJM4F41QqWYZMngKm5vh1AAC4QtrG69XgERW6iGi_ELpcQEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZy5pkD-fRBgztq5BYqfjpKnSzsFcggAC4gtrG69XgES1Pq1W2UKvAwEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name" contenteditable="false">【A3】令和时代的萝莉控（1.4G）</div>
+            <div class="g-tags" contenteditable="false">标签: PC RPG 像素 动态 萝莉</div>
+            <div class="link-wrap">
+                <div class="link-text" contenteditable="false">https:/pan.quark.cn/s/2fa0472ac5af?pwd=eQVB<div>提取码:eQVB</div></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card active-render" style="order: 4;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZylpkD5mggQwEfzNdnEEotWd2xkxWgAC2wtrG69XgETCS3qv0rQX0AEAAwIAA3cAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZyppkD5-GeiDjv0zfZnnQzd1UyWzpwAC3AtrG69XgEQn-ej4uB_CvAEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZytpkD6Rx4cdUPVuO0_oeUCZ7jk4RgAC3QtrG69XgERV4rjMis_APQEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name" contenteditable="false">【A2】我的女仆 /僕のメイド（1.2G）</div>
+            <div class="g-tags" contenteditable="false">标签: PC 养成 像素 动态 女仆 萝莉 SLG</div>
+            <div class="link-wrap">
+                <div class="link-text" contenteditable="false">https://pan.quark.cn/s/da3ab6a11c08<div>提取码:2X4x</div></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card active-render" style="order: 5;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZyVpkDxeceHPBhLidF7zIfk9wglL2wAC2AtrG69XgES2fGjF3twC4wEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZydpkDyQSoXE-1jSHv2f8h_6uCZ9sgAC2QtrG69XgER6s-TT_E82oAEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZyhpkDypRDekWEHSu1w3kzKVoMxiYwAC2gtrG69XgEQCFlepvQcKXgEAAwIAA3gAAzoE.jpg" class="active">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">3 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name" contenteditable="false">【A1】我和姐姐们的夏天（180MB）</div>
+            <div class="g-tags" contenteditable="false">标签: PC RPG 正太 骑大车 巨乳 像素 动态</div>
+            <div class="link-wrap expanded">
+                <div class="link-text" contenteditable="false">分卷1<div>https://pan.quark.cn/s/f72479580e14?pwd=74QB</div><div>提取码:74QB</div><div>分卷2</div><div>https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN</div><div>提取码:z4yN</div></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+        </div>
+    </div></div>
+    <div id="pagination" class="pagination"></div>
+    <div id="rocket" onclick="goTop()" class="">🚀</div>
+    <div id="prevPageBtn" class="side-nav-btn" onclick="navPage(-1)">‹</div>
+    <div id="nextPageBtn" class="side-nav-btn" onclick="navPage(1)">›</div>
+</main>
+
+<div id="loginModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        <div class="modal-title">🔑 验证管理身份：</div>
+        <input type="password" id="passInput" class="modal-input" placeholder="天笑的管理暗号">
+        <div class="modal-btns">
+            <button class="modal-btn btn-cancel" onclick="closeLogin()">取消</button>
+            <button class="modal-btn btn-confirm" onclick="checkPass()">确定</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const ACCESS_PASS = "114514"; 
+const ADMIN_PASS = "tianxiao"; 
+const PAGE_SIZE = 10;
+const DB_KEY = "TX_SECRET_BASE_DATA";
+const FAV_KEY = "TX_FAVORITES"; // 收藏数据存储键
+const APP_VERSION = "1.0.0"; // 应用版本号
+const VERSION_KEY = "TX_APP_VERSION"; // 版本存储键
+
+let isEditMode = false;
+let currentCat = "all";
+let currentPage = 1;
+let maxPageCount = 1;
+let favorites = new Set(); // 收藏列表（存储卡片ID）
+
+// 检查版本更新
+function checkForUpdates() {
+    const savedVersion = localStorage.getItem(VERSION_KEY);
+    
+    if (!savedVersion) {
+        // 首次安装
+        localStorage.setItem(VERSION_KEY, APP_VERSION);
+        console.log('✅ 首次安装，版本:', APP_VERSION);
+        return;
+    }
+    
+    if (savedVersion !== APP_VERSION) {
+        // 检测到新版本
+        console.log('🔄 检测到更新:', savedVersion, '→', APP_VERSION);
+        showUpdateNotification(savedVersion, APP_VERSION);
+        localStorage.setItem(VERSION_KEY, APP_VERSION);
+    }
+}
+
+// 显示更新通知
+function showUpdateNotification(oldVer, newVer) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        z-index: 9999;
+        font-size: 14px;
+        font-weight: bold;
+        animation: slideDown 0.5s ease;
+    `;
+    notification.innerHTML = `
+        🎉 应用已更新！
+        <span style="opacity: 0.8; font-size: 12px; margin-left: 8px;">
+        ${oldVer} → ${newVer}
+        </span>
+    `;
+    document.body.appendChild(notification);
+    
+    // 添加动画
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { top: -100px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // 5秒后自动消失
+    setTimeout(() => {
+        notification.style.animation = 'slideDown 0.5s ease reverse';
+        setTimeout(() => notification.remove(), 500);
+    }, 5000);
+}
+
+// 强制刷新缓存
+function clearCacheAndReload() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+            }
+        });
+    }
+    
+    if ('caches' in window) {
+        caches.keys().then(function(names) {
+            for (let name of names) caches.delete(name);
+        });
+    }
+    
+    alert('✅ 缓存已清除！页面即将刷新');
+    location.reload(true);
+}
+
+function autoSave() {
+    const data = document.getElementById("box").innerHTML;
+    localStorage.setItem(DB_KEY, data);
+}
+
+function loadFromGrave() {
+    const data = localStorage.getItem(DB_KEY);
+    if(data) {
+        document.getElementById("box").innerHTML = data;
+    }
+    
+    // 加载收藏数据
+    const savedFav = localStorage.getItem(FAV_KEY);
+    if (savedFav) {
+        try {
+            favorites = new Set(JSON.parse(savedFav));
+        } catch(e) {
+            favorites = new Set();
+        }
+    }
+    
+    // 为所有卡片添加收藏按钮和ID
+    initCardFavorites();
+    refreshUI();
+}
+
+function refreshUI(targetPage) {
+    if(targetPage) {
+        currentPage = targetPage;
+        goTop();
+    }
+    const searchVal = document.getElementById("search").value.toUpperCase();
+    const box = document.getElementById("box");
+    const allCards = Array.from(box.querySelectorAll(".card"));
+    
+    // 1. 过滤逻辑
+    let filtered = allCards.filter(c => {
+        const txt = c.innerText.toUpperCase();
+        const matchCat = (currentCat === "all" || txt.includes(currentCat));
+        const matchSearch = txt.includes(searchVal);
+        
+        // 收藏分区：只显示已收藏的卡片
+        if (currentCat === '收藏') {
+            const cardId = c.dataset.cardId;
+            return cardId && favorites.has(cardId) && matchSearch;
+        }
+        
+        return matchCat && matchSearch;
+    });
+
+    // 2. ✨ 核心排序修复：使用 Array.sort 重新确定数组顺序
+    filtered.sort((a, b) => {
+        const aP = a.classList.contains("is-pinned") ? 1 : 0;
+        const bP = b.classList.contains("is-pinned") ? 1 : 0;
+        return bP - aP; // 置顶权重最高
+    });
+
+    // 3. ✨ 关键步骤：根据排序结果，动态给 DOM 元素分配 order 权重
+    // 强制置顶的 order 为极小值，普通卡片按照它们在数组中的顺序分配递增的 order
+    filtered.forEach((card, index) => {
+        if (card.classList.contains("is-pinned")) {
+            card.style.order = "-1000"; // 绝对置顶
+        } else {
+            card.style.order = index; // 保持过滤后的自然顺序
+        }
+    });
+
+    allCards.forEach(c => c.classList.remove("active-render"));
+    const pagContainer = document.getElementById("pagination");
+    maxPageCount = Math.ceil(filtered.length / PAGE_SIZE);
+    
+    if(currentPage > maxPageCount && maxPageCount > 0) currentPage = maxPageCount;
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    filtered.slice(start, start + PAGE_SIZE).forEach(c => c.classList.add("active-render"));
+
+    document.getElementById("prevPageBtn").classList.toggle("show", currentPage > 1);
+    document.getElementById("nextPageBtn").classList.toggle("show", currentPage < maxPageCount);
+
+    pagContainer.innerHTML = "";
+    if (maxPageCount > 1) {
+        let numHtml = `<div class="page-numbers">`;
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(maxPageCount, startPage + 4);
+        if (endPage === maxPageCount) startPage = Math.max(1, maxPageCount - 4);
+        
+        if (startPage > 1) {
+            numHtml += `<div class="page-item" onclick="refreshUI(1)">1</div>`;
+            if (startPage > 2) numHtml += `<div class="page-dot">...</div>`;
+        }
+        for (let i = startPage; i <= endPage; i++) {
+            numHtml += `<div class="page-item ${i === currentPage ? 'active' : ''}" onclick="refreshUI(${i})">${i}</div>`;
+        }
+        if (endPage < maxPageCount) {
+            if (endPage < maxPageCount - 1) numHtml += `<div class="page-dot">...</div>`;
+            numHtml += `<div class="page-item" onclick="refreshUI(${maxPageCount})">${maxPageCount}</div>`;
+        }
+        numHtml += `</div>`;
+
+        let funcHtml = `
+            <div class="page-jump-row">
+                <span>跳至</span>
+                <input type="number" class="page-jump" placeholder="页码..." onkeydown="if(event.keyCode==13) { let p=parseInt(this.value); if(p>0 && p<=${maxPageCount}) refreshUI(p); else alert('没有这一页！'); }">
+                <span>/ 共 ${maxPageCount} 页</span>
+            </div>`;
+
+        pagContainer.innerHTML = numHtml + funcHtml;
+    }
+
+    if(isEditMode) autoSave();
+    
+    // 🔗 为所有link-wrap添加跳转按钮
+    addLinkJumpButtons();
+}
+
+function navPage(dir) {
+    let target = currentPage + dir;
+    if(target >= 1 && target <= maxPageCount) refreshUI(target);
+}
+
+function verifyAccess() {
+    if(document.getElementById("accessPass").value === ACCESS_PASS) document.getElementById("gateKeeper").style.display = "none";
+    else alert("你好像不是自己人，自由之地不欢迎你♂");
+}
+
+function filterTab(cat, el) {
+    document.querySelectorAll("#nav li").forEach(li => li.classList.remove("active"));
+    el.classList.add("active");
+    currentCat = cat;
+    refreshUI(1); 
+}
+
+function handleScroll() {
+    const main = document.getElementById("mainScroll");
+    const rocket = document.getElementById("rocket");
+    if (main.scrollTop > 300) rocket.classList.add("show");
+    else rocket.classList.remove("show");
+}
+
+function goTop() { document.getElementById("mainScroll").scrollTo({ top: 0, behavior: 'smooth' }); }
+
+function openLogin() { if(!isEditMode) document.getElementById("loginModal").style.display = "flex"; }
+function closeLogin() { document.getElementById("loginModal").style.display = "none"; document.getElementById("passInput").value = ""; }
+function checkPass() {
+    if(document.getElementById("passInput").value === ADMIN_PASS) { enterAdmin(); closeLogin(); }
+    else { alert("你还想冒充天笑我?去鹿吧你！"); closeLogin(); }
+}
+
+function enterAdmin() {
+    isEditMode = true; 
+    document.body.classList.add("admin-mode");
+    document.getElementById("adminBar").style.display = "flex";
+    document.getElementById("entryBtn").style.visibility = "hidden";
+    
+    document.querySelectorAll(".card").forEach(card => {
+        if (!card.querySelector(".pin-btn")) {
+            const pin = document.createElement("div");
+            pin.className = "pin-btn";
+            pin.innerHTML = "📌";
+            pin.onclick = function() { togglePin(this); };
+            card.prepend(pin);
+        }
+        const delBtn = card.querySelector(".del-btn");
+        if (delBtn) delBtn.onclick = function() { deleteCard(this); };
+    });
+
+    document.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => el.contentEditable = "true");
+    refreshUI();
+}
+
+function exitAdmin() {
+    isEditMode = false; document.body.classList.remove("admin-mode");
+    document.getElementById("adminBar").style.display = "none";
+    document.getElementById("entryBtn").style.visibility = "visible";
+    // 🔒 安全修复：明确禁用所有可编辑元素
+    document.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => {
+        el.contentEditable = "false";
+        el.removeAttribute("contenteditable");
+    });
+    autoSave();
+    refreshUI();
+}
+
+function togglePin(btn) {
+    const card = btn.parentElement;
+    card.classList.toggle("is-pinned");
+    // ✨ 核心修复：点击置顶后立刻重排 order 权重
+    refreshUI();
+    autoSave();
+}
+
+function deleteCard(btn) {
+    const card = btn.parentElement;
+    const cardName = card.querySelector('.g-name').innerText;
+    if (confirm(`⚠️ 确定要删除资源【${cardName}】吗？`)) {
+        card.remove();
+        alert("✅ 已成功删除！");
+        refreshUI();
+        autoSave();
+    }
+}
+
+function addCard() {
+    const div = document.createElement("div");
+    div.className = "card";
+    let defaultTag = currentCat === 'all' ? 'ACT' : currentCat;
+    
+    div.innerHTML = `
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://via.placeholder.com">
+            <img loading="lazy" src="https://via.placeholder.com">
+            <img loading="lazy" src="https://via.placeholder.com">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">标题...</div>
+            <div class="g-tags">标签: ${defaultTag}</div>
+            <div class="link-wrap">
+                <div class="link-text">🔗 链接及简介...</div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    `;
+    // 物理插入位置不重要了，因为 refreshUI 会靠 order 强制修正位置
+    document.getElementById("box").prepend(div);
+    
+    // 为新卡片分配ID
+    div.dataset.cardId = 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    // 🔒 安全修复：仅在管理员模式下设置为可编辑
+    if (isEditMode) {
+        div.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => el.contentEditable = "true");
+    }
+    
+    document.getElementById("search").value = ""; 
+    
+    // ✨ 核心修复：新增后立即刷新以应用最新的 order 权重
+    refreshUI(1);
+}
+
+function changeSlide(btn, dir) {
+    const box = btn.parentElement;
+    const imgs = box.querySelectorAll('img');
+    const indexTag = box.querySelector('.img-index');
+    let idx = Array.from(imgs).findIndex(img => img.classList.contains('active'));
+    imgs[idx].classList.remove('active');
+    idx = (idx + dir + imgs.length) % imgs.length;
+    imgs[idx].classList.add('active');
+    indexTag.innerText = `${idx + 1} / ${imgs.length}`;
+}
+
+function editCurrentImg(btn) {
+    const activeImg = btn.parentElement.querySelector('img.active');
+    const url = prompt("🖼️ 输入图片URL:", activeImg.src);
+    if(url && url.startsWith('http')) {
+        activeImg.src = url;
+        autoSave();
+    }
+}
+
+function toggleExpand(btn) {
+    const wrap = btn.parentElement;
+    wrap.classList.toggle('expanded');
+    btn.innerText = wrap.classList.contains('expanded') ? "收起 ▴" : "展开 ▾";
+}
+
+// 💖 收藏功能
+function initCardFavorites() {
+    const allCards = document.querySelectorAll('.card');
+    allCards.forEach((card, index) => {
+        // 为每个卡片分配唯一ID（如果没有的话）
+        if (!card.dataset.cardId) {
+            card.dataset.cardId = 'card_' + Date.now() + '_' + index;
+        }
+        
+        // 检查是否已有收藏按钮
+        if (!card.querySelector('.fav-btn')) {
+            const favBtn = document.createElement('div');
+            favBtn.className = 'fav-btn';
+            const cardId = card.dataset.cardId;
+            favBtn.innerHTML = favorites.has(cardId) ? '💖' : '🤍';
+            if (favorites.has(cardId)) favBtn.classList.add('favorited');
+            favBtn.onclick = function() { toggleFavorite(this); };
+            
+            // 插入到卡片顶部（在pin按钮之后）
+            const sliderBox = card.querySelector('.slider-box');
+            if (sliderBox) {
+                sliderBox.appendChild(favBtn);
+            } else {
+                card.prepend(favBtn);
+            }
+        }
+    });
+}
+
+function toggleFavorite(btn) {
+    const card = btn.closest('.card');
+    const cardId = card.dataset.cardId;
+    
+    if (!cardId) return;
+    
+    if (favorites.has(cardId)) {
+        // 取消收藏
+        favorites.delete(cardId);
+        btn.innerHTML = '🤍';
+        btn.classList.remove('favorited');
+    } else {
+        // 添加收藏
+        favorites.add(cardId);
+        btn.innerHTML = '💖';
+        btn.classList.add('favorited');
+    }
+    
+    // 保存收藏数据
+    saveFavorites();
+    
+    // 如果当前在收藏分区，刷新显示
+    if (currentCat === '收藏') {
+        refreshUI();
+    }
+}
+
+function saveFavorites() {
+    localStorage.setItem(FAV_KEY, JSON.stringify([...favorites]));
+}
+
+// 🔗 为所有卡片添加跳转按钮
+function addLinkJumpButtons() {
+    document.querySelectorAll('.link-wrap').forEach(wrap => {
+        // 检查是否已有跳转按钮
+        if (wrap.querySelector('.link-actions')) return;
+        
+        const linkText = wrap.querySelector('.link-text');
+        const expandBtn = wrap.querySelector('.expand-btn');
+        
+        if (!linkText || !expandBtn) return;
+        
+        // 提取链接
+        const text = linkText.innerText || linkText.textContent;
+        const urls = extractUrls(text);
+        
+        if (urls.length === 0) return; // 没有链接就不添加按钮
+        
+        // 创建按钮容器
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'link-actions';
+        
+        if (urls.length === 1) {
+            // 单个链接：显示一个跳转按钮
+            actionsDiv.innerHTML = `<button class="link-jump-btn" onclick="window.open('${urls[0]}', '_blank')">🔗 打开链接</button>`;
+        } else {
+            // 多个链接：显示选择按钮
+            const urlsJson = JSON.stringify(urls).replace(/'/g, "\\'");
+            actionsDiv.innerHTML = `<button class="link-jump-btn" onclick='showLinkSelector(${urlsJson})'>🔗 选择链接 (${urls.length}个)</button>`;
+        }
+        
+        // 插入到展开按钮之前
+        wrap.insertBefore(actionsDiv, expandBtn);
+    });
+}
+
+// 从文本中提取所有URL
+function extractUrls(text) {
+    const urlPattern = /(https?:\/\/[^\s<>"]+)/g;
+    const matches = text.match(urlPattern);
+    if (!matches) return [];
+    
+    // 清理URL末尾的标点
+    return matches.map(url => {
+        return url.replace(/[,，。.;；!！?？\)）\]】}>》\'"]+$/, '');
+    });
+}
+
+// 显示多链接选择器
+function showLinkSelector(urls) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    
+    let linksHtml = urls.map((url, idx) => {
+        const shortUrl = url.length > 60 ? url.substring(0, 60) + '...' : url;
+        return `<div style="margin: 8px 0;">
+            <button class="modal-btn btn-confirm" onclick="window.open('${url}', '_blank'); this.closest('.modal-overlay').remove();" style="width: 100%; text-align: left; padding: 12px; word-break: break-all;">
+                ${idx + 1}. ${shortUrl}
+            </button>
+        </div>`;
+    }).join('');
+    
+    modal.innerHTML = `
+        <div class="modal-box" style="max-width: 450px;">
+            <div class="modal-title">🔗 选择要打开的链接 (共${urls.length}个)</div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                ${linksHtml}
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="modal-btn btn-cancel" onclick="this.closest('.modal-overlay').remove()" style="width: 100%;">取消</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 点击背景关闭
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+function savePage() {
+    const was = isEditMode; exitAdmin();
+    const gate = document.getElementById("gateKeeper");
+    const wasGate = gate.style.display;
+    gate.style.display = "flex"; 
+    const clone = document.documentElement.cloneNode(true);
+    clone.querySelector("#search").value = "";
+    const blob = new Blob(["<!DOCTYPE html>\n" + clone.outerHTML], {type: "text/html"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "天笑操作秘密基地.html";
+    a.click();
+    gate.style.display = wasGate;
+    if(was) enterAdmin();
+}
+
+window.onload = () => { 
+    // 🔄 检查版本更新（最优先）
+    checkForUpdates();
+    
+    loadFromGrave(); 
+    // 🔒 安全修复：页面加载时确保非管理员模式下所有元素不可编辑
+    if (!isEditMode) {
+        document.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => {
+            el.contentEditable = "false";
+            el.removeAttribute("contenteditable");
+        });
+    }
+    
+    // 📱 注册Service Worker（PWA支持）
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register(createServiceWorkerBlob()).then(function(registration) {
+            console.log('✅ PWA已激活！可以添加到主屏幕了');
+            
+            // 监听Service Worker更新
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // 有新版本可用
+                        if (confirm('🎉 发现新版本！是否立即更新？')) {
+                            newWorker.postMessage({ action: 'skipWaiting' });
+                            window.location.reload();
+                        }
+                    }
+                });
+            });
+        }).catch(function(err) {
+            console.log('Service Worker注册失败:', err);
+        });
+    }
+    
+    // 显示安装提示
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallButton();
+    });
+};
+
+// 创建内联Service Worker
+function createServiceWorkerBlob() {
+    const swCode = `
+        const CACHE_NAME = 'tianxiao-cache-v1';
+        const urlsToCache = ['/'];
+        
+        self.addEventListener('install', event => {
+            event.waitUntil(
+                caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+            );
+        });
+        
+        self.addEventListener('fetch', event => {
+            event.respondWith(
+                caches.match(event.request).then(response => {
+                    return response || fetch(event.request);
+                })
+            );
+        });
+    `;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    return URL.createObjectURL(blob);
+}
+
+// 显示安装按钮
+function showInstallButton() {
+    // 如果已经在主屏幕，不显示
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    
+    const installBtn = document.createElement('div');
+    installBtn.innerHTML = '📱';
+    installBtn.style.cssText = `
+        position: fixed;
+        left: 15px;
+        bottom: 100px;
+        width: 45px;
+        height: 45px;
+        background: #4CAF50;
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+        cursor: pointer;
+        z-index: 200;
+        animation: pulse 2s infinite;
+    `;
+    installBtn.title = '添加到主屏幕';
+    installBtn.onclick = installApp;
+    document.body.appendChild(installBtn);
+    
+    // 添加脉冲动画
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function installApp() {
+    if (!window.deferredPrompt) {
+        alert('📱 请点击浏览器菜单中的"添加到主屏幕"选项！');
+        return;
+    }
+    
+    window.deferredPrompt.prompt();
+    window.deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+            console.log('用户接受了安装');
+        }
+        window.deferredPrompt = null;
+    });
+}
+
+setInterval(() => { if(isEditMode) autoSave(); }, 5000);
+</script>
+
+
+</body></html>
