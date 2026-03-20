@@ -235,16 +235,15 @@
     </div>
 </div>
 
-<script id="data-script">
+<script>
+
     let resources = []; 
     let tierData = [];
     let navTags = ["全部", "最新咨询", "梯度", "版本", "比赛时间"];
     let rankingList = []; // [{title, data:[...]}]
     let rkOpenIdx = null;
     let bannerData = [];
-</script>
 
-<script>
     let isAdmin = false;
     let adminToken = null;
     let activePage = 'community'; // 'community' | 'tier'
@@ -378,7 +377,7 @@
                 showCloudToast('✅ 已同步到云端');
             }
         } catch(e) {
-            showCloudToast('❌ ' + e.message);
+            showCloudToast('❌ 网络错误，请重试');
         }
     }
 
@@ -403,7 +402,7 @@
                 showCloudToast('❌ ' + (result.message || '登录失败'));
             }
         } catch(e) {
-            showCloudToast('❌ ' + e.message);
+            showCloudToast('❌ 网络错误');
         }
     }
 
