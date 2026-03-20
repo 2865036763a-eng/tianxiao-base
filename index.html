@@ -459,8 +459,7 @@
         if (page === 'community') document.getElementById('search-input').placeholder = "🔍 搜标题、标签、或内容...";
         else if (page === 'tier') document.getElementById('search-input').placeholder = "🔍 搜角色名称或特性...";
         else document.getElementById('search-input').placeholder = "🔍 搜积分榜...";
-        // 积分榜时隐藏分类导航和搜索栏
-        document.querySelector('.sticky-tools').style.display = (page === 'ranking') ? 'none' : 'block';
+
         
         if (page === 'ranking') renderRanking();
         else renderAll();
@@ -487,7 +486,7 @@
     // ===== 积分排行榜 =====
     function renderRanking() {
         const container = document.getElementById('page-ranking');
-        const uploadBtn = isAdmin ? `<div style="border:2px dashed #ddd;border-radius:12px;padding:16px;text-align:center;color:#aaa;font-size:14px;cursor:pointer;margin:8px 0;" onclick="document.getElementById('rk-upload-input').click()">📂 ${rankingData.length?'重新上传':'点击上传'} xlsx</div>` : '';
+        const uploadBtn = isAdmin ? '<label style="display:block;border:2px dashed #ddd;border-radius:12px;padding:16px;text-align:center;color:#aaa;font-size:14px;cursor:pointer;margin:8px 0;">📂 点击上传 xlsx<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkHandleFile(this)"></label>' : '';
         if (!rankingData.length) {
             container.innerHTML = '<div style="text-align:center;color:#ccc;padding:40px;font-size:15px;">暂无积分数据</div>' + uploadBtn;
             return;
