@@ -56,15 +56,29 @@
         .editor-toolbar { display: flex; gap: 10px; margin-bottom: 5px; background: #f9f9f9; padding: 8px; border-radius: 8px; }
         .tool-btn { background: #fff; border: 1px solid #ddd; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; }
 
-        /* ======= 社区卡片样式 (v17.1 原版) ======= */
+        /* 轮播图 */
+        #banner-wrap { width:100%; overflow:hidden; background:#000; position:relative; }
+        #banner-slider { position:relative; width:100%; overflow:hidden; }
+        #banner-track { display:flex; transition:transform 0.4s ease; }
+        #banner-track a { flex:0 0 100%; display:block; }
+        #banner-track img { width:100%; height:180px; object-fit:cover; display:block; }
+        #banner-dots { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:10; }
+        .b-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.5); cursor:pointer; transition:background 0.3s; }
+        .b-dot.active { background:#fff; }
+        #banner-prev, #banner-next { position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.35); color:#fff; border:none; font-size:24px; padding:4px 10px; cursor:pointer; z-index:10; border-radius:4px; }
+        #banner-prev { left:6px; }
+        #banner-next { right:6px; }
+
+        
         .card { background: var(--card); border-radius: 15px; border: 1px solid #e0e0e0; overflow: hidden; margin-bottom:12px; }
         .card-main { display: flex; cursor: pointer; }
         .card-thumb { width: 110px; min-width: 110px; max-height: 130px; background: #eee; overflow: hidden; }
         .card-thumb img { width: 100%; height: 130px; object-fit: cover; object-position: center; }
         .card-content { flex: 1; padding: 12px; }
         .card-title { font-size: 15px; font-weight: bold; color: #222; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
+        .pin-badge { display:inline-block; font-size:10px; background:#ff6699; color:#fff; padding:1px 6px; border-radius:4px; margin-right:5px; vertical-align:middle; }
         .card-tag { display: inline-block; font-size: 10px; color: var(--primary); border: 1px solid var(--primary); padding: 0 5px; border-radius: 4px; margin-top: 8px; margin-right: 4px; }
-        .detail-pane { display: none; padding: 20px 15px; background: #fff; border-top: 1px solid #eee; }
+        .detail-pane { display: none; padding: 20px 15px; background: #fff; border-top: 2px solid #f0f0f0; }
         .card.expanded .detail-pane { display: block; }
         .card.expanded .card-main { display: none; }
         .full-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; line-height: 1.3; color: #000; word-break: break-all; }
@@ -114,7 +128,30 @@
     <button class="ctrl-btn" style="background:#4CAF50; border-color:#4CAF50; color:#fff;" onclick="showEditor('tier')">➕ 添加 T级成员</button>
     <button class="ctrl-btn" style="background:#ff9800; border-color:#ff9800; color:#fff;" onclick="showEditor('nav')">🏷️ 管理分类</button>
     <button class="ctrl-btn" style="background:#1e90ff; border-color:#1e90ff; color:#fff;" onclick="cloudSave()">☁️ 保存到云端</button>
+    <button class="ctrl-btn" style="background:#9c27b0; border-color:#9c27b0; color:#fff;" onclick="showBannerEditor()">🖼️ 管理轮播图</button>
     <button class="ctrl-btn" onclick="exportHTML()">💾 导出当前数据</button>
+</div>
+
+<!-- 轮播图编辑器 -->
+<div id="banner-editor" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
+    <div style="background:#fff;border-radius:20px;margin:20px auto;max-width:500px;padding:20px;">
+        <div style="font-size:16px;font-weight:bold;margin-bottom:15px;">🖼️ 管理轮播图</div>
+        <div id="banner-list"></div>
+        <button onclick="bannerAddSlide()" style="width:100%;padding:12px;margin-top:10px;border:2px dashed #ccc;background:#fff;border-radius:10px;color:#999;font-size:14px;cursor:pointer;">+ 添加一张图片</button>
+        <div style="display:flex;gap:10px;margin-top:15px;">
+            <button onclick="bannerSave()" style="flex:1;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-weight:bold;cursor:pointer;">保存</button>
+            <button onclick="document.getElementById('banner-editor').style.display='none'" style="flex:1;padding:12px;background:#f0f0f0;border:none;border-radius:10px;cursor:pointer;">取消</button>
+        </div>
+    </div>
+</div>
+
+
+    <div id="banner-slider">
+        <div id="banner-track"></div>
+        <div id="banner-dots"></div>
+        <button id="banner-prev" onclick="bannerMove(-1)">&#8249;</button>
+        <button id="banner-next" onclick="bannerMove(1)">&#8250;</button>
+    </div>
 </div>
 
 <div class="sticky-tools">
@@ -185,15 +222,92 @@
     // ☁️ Cloudflare Worker 地址（结尾不加斜杠）
     const WORKER_URL = 'https://pvz-api.pvzdlc.qzz.io';
 
-    function clearCache() {
+    function showBannerEditor() {
+        const banners = (resources._banners) || [];
+        const list = document.getElementById('banner-list');
+        list.innerHTML = '';
+        banners.forEach((b, i) => list.appendChild(bannerSlideEl(b, i)));
+        document.getElementById('banner-editor').style.display = 'block';
+    }
+
+    function bannerSlideEl(b, i) {
+        const div = document.createElement('div');
+        div.style.cssText = 'border:1px solid #eee;border-radius:10px;padding:12px;margin-bottom:10px;';
+        div.innerHTML = `
+            <input placeholder="图片URL（必填）" value="${b.img||''}" oninput="bannerFieldUpdate(${i},'img',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+            <input placeholder="点击跳转链接（可选）" value="${b.link||''}" oninput="bannerFieldUpdate(${i},'link',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+            <input placeholder="底部标题文字（可选）" value="${b.title||''}" oninput="bannerFieldUpdate(${i},'title',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+            <button onclick="bannerRemove(${i})" style="color:red;border:1px solid red;background:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">删除</button>
+        `;
+        return div;
+    }
+
+    function bannerFieldUpdate(i, field, val) {
+        if (!resources._banners) resources._banners = [];
+        resources._banners[i][field] = val;
+    }
+
+    function bannerAddSlide() {
+        if (!resources._banners) resources._banners = [];
+        resources._banners.push({ img: '', link: '', title: '' });
+        showBannerEditor();
+    }
+
+    function bannerRemove(i) {
+        resources._banners.splice(i, 1);
+        showBannerEditor();
+    }
+
+    function bannerSave() {
+        document.getElementById('banner-editor').style.display = 'none';
+        renderBanner();
+    }
+
+    
+    let bannerIndex = 0;
+    let bannerTimer = null;
+
+    function renderBanner() {
+        const banners = (resources._banners) || [];
+        const wrap = document.getElementById('banner-wrap');
+        const track = document.getElementById('banner-track');
+        const dots = document.getElementById('banner-dots');
+        if (!banners.length) { wrap.style.display = 'none'; return; }
+        wrap.style.display = 'block';
+        track.innerHTML = banners.map(b => `
+            <a href="${b.link || 'javascript:void(0)'}" ${b.link ? 'target="_blank"' : ''}>
+                <img src="${b.img}" alt="${b.title || ''}">
+                ${b.title ? `<div style="position:absolute;bottom:28px;left:0;width:100%;text-align:center;color:#fff;font-size:13px;font-weight:bold;text-shadow:0 1px 4px rgba(0,0,0,0.7);padding:0 10px;">${b.title}</div>` : ''}
+            </a>
+        `).join('');
+        dots.innerHTML = banners.map((_, i) => `<div class="b-dot ${i===0?'active':''}" onclick="bannerGo(${i})"></div>`).join('');
+        bannerIndex = 0;
+        bannerUpdate();
+        clearInterval(bannerTimer);
+        if (banners.length > 1) bannerTimer = setInterval(() => bannerMove(1), 4000);
+    }
+
+    function bannerMove(dir) {
+        const banners = (resources._banners) || [];
+        if (!banners.length) return;
+        bannerIndex = (bannerIndex + dir + banners.length) % banners.length;
+        bannerUpdate();
+    }
+
+    function bannerGo(i) { bannerIndex = i; bannerUpdate(); }
+
+    function bannerUpdate() {
+        document.getElementById('banner-track').style.transform = `translateX(-${bannerIndex * 100}%)`;
+        document.querySelectorAll('.b-dot').forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
+    }
+
+    
         if (confirm('清理本地缓存并重新从云端加载？')) {
             localStorage.clear();
             sessionStorage.clear();
             location.reload();
         }
     }
-
-    async function cloudLoad() {
         try {
             const res = await fetch(`${WORKER_URL}/api/data`);
             if (!res.ok) throw new Error('网络错误');
@@ -321,6 +435,7 @@
     }
 
     function renderAll() {
+        renderBanner();
         if(activePage === 'community') {
             renderCommunity();
         } else {
@@ -342,7 +457,13 @@
         const list = document.getElementById('page-community');
         list.innerHTML = "";
 
-        resources.forEach((res, i) => {
+        // 置顶文章排最前
+        const sorted = resources
+            .map((res, i) => ({ res, i }))
+            .filter(({ res }) => !res._isBanner)
+            .sort((a, b) => (b.res.pinned ? 1 : 0) - (a.res.pinned ? 1 : 0));
+
+        sorted.forEach(({ res, i }) => {
             const rawTags = (res.cat||"").trim().toLowerCase();
             const tagsArr = rawTags.split(/\s+/).filter(t => t);
             
@@ -357,6 +478,7 @@
 
             const card = document.createElement('div');
             card.className = 'card';
+            if (res.pinned) card.style.border = '1.5px solid #ff6699';
             card.onclick = () => {
                 if(isAdmin) { loadToForm_Post(i); return; }
                 card.classList.toggle('expanded');
@@ -366,10 +488,14 @@
                 <div class="card-main">
                     <div class="card-thumb"><img src="${res.cover || 'https://via.placeholder.com/150?text=PVZ'}"></div>
                     <div class="card-content">
-                        <div class="card-title">${res.title}</div>
+                        <div class="card-title">${res.pinned ? '<span class="pin-badge">📌 置顶</span>' : ''}${res.title}</div>
                         <div>${tagsArr.map(t => `<span class="card-tag">${t}</span>`).join('')}</div>
                     </div>
-                    ${isAdmin ? `<button onclick="event.stopPropagation(); doDelete_Post(${i})" style="align-self:center; margin-right:10px; color:red; border:1px solid red; padding:6px 10px; border-radius:8px; background:none; font-size:12px; font-weight:bold; white-space:nowrap; flex-shrink:0;">🗑️ 删除</button>` : ''}
+                    ${isAdmin ? `
+                    <div style="display:flex;flex-direction:column;gap:6px;align-self:center;margin-right:10px;flex-shrink:0;">
+                        <button onclick="event.stopPropagation(); togglePin(${i})" style="color:${res.pinned?'#ff6699':'#aaa'};border:1px solid ${res.pinned?'#ff6699':'#ddd'};padding:4px 8px;border-radius:8px;background:none;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">${res.pinned?'📌 取消置顶':'📌 置顶'}</button>
+                        <button onclick="event.stopPropagation(); doDelete_Post(${i})" style="color:red;border:1px solid red;padding:4px 8px;border-radius:8px;background:none;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">🗑️ 删除</button>
+                    </div>` : ''}
                 </div>
                 <div class="detail-pane">
                     <div class="full-title">${res.title}</div>
@@ -547,6 +673,12 @@
 
     function resetForm() {
         document.getElementById('edit-idx').value = "";
+    }
+
+    async function togglePin(i) {
+        resources[i].pinned = !resources[i].pinned;
+        await cloudSave();
+        renderAll();
     }
 
     async function doDelete_Post(i) {
