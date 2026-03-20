@@ -352,6 +352,7 @@
             tierData = parsed.tierData || [];
             if (parsed.navTags) navTags = parsed.navTags;
             bannerData = parsed.bannerData || [];
+            rankingList = parsed.rankingList || [];
         } catch(e) {
             showCloudToast('⚠️ 云端加载失败');
         }
@@ -366,7 +367,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${adminToken}`,
                 },
-                body: JSON.stringify({ resources, tierData, navTags, bannerData }),
+                body: JSON.stringify({ resources, tierData, navTags, bannerData, rankingList }),
             });
             const result = await res.json();
             if (!res.ok) {
@@ -438,7 +439,12 @@
     function switchMainPage(page) {
         activePage = page;
         // 切换顶部激活状态
-        document.querySelectorAll('.tab-item').forEach(el => el.classList.toggle('active', el.innerText.includes(page==='community'?'社区':'梯度')));
+        document.querySelectorAll('.tab-item').forEach(el => {
+            const t = el.innerText;
+            el.classList.toggle('active',
+                (page==='community'&&t.includes('社区'))||(page==='tier'&&t.includes('梯度'))||(page==='ranking'&&t.includes('积分'))
+            );
+        });
         
         // 切换内容区域
         document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
@@ -471,12 +477,163 @@
         renderAll();
     }
 
+
+    // ===== 积分榜 =====
+    function renderRanking() {
+        const c = document.getElementById('page-ranking');
+        let h = '';
+        if (isAdmin) {
+            h += '<label style="display:block;border:2px dashed #ddd;border-radius:12px;padding:14px;text-align:center;color:#aaa;font-size:14px;cursor:pointer;margin-bottom:10px;">📂 上传 xlsx 新建比赛<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkUpload(this,-1)"></label>';
+            h += '<button onclick="rkNewEmpty()" style="width:100%;padding:12px;border:2px dashed #ff6699;background:#fff;border-radius:12px;color:#ff6699;font-size:14px;font-weight:bold;cursor:pointer;margin-bottom:12px;">➕ 手动新建比赛</button>';
+        }
+        if (!rankingList.length) {
+            h += '<div style="text-align:center;color:#ccc;padding:40px;">暂无比赛数据</div>';
+            c.innerHTML = h; return;
+        }
+        rankingList.forEach((m, idx) => {
+            const open = rkOpenIdx === idx;
+            h += `<div class="rk-match-card">
+                <div class="rk-match-header" onclick="rkToggle(${idx})">
+                    <span class="rk-match-title">🏆 ${m.title||'未命名比赛'}</span>
+                    ${isAdmin ? `<button class="rk-admin-btn" style="color:#1e90ff;border-color:#1e90ff;" onclick="event.stopPropagation();rkRename(${idx})">✏️</button>
+                    <button class="rk-admin-btn" style="color:red;border-color:red;" onclick="event.stopPropagation();rkDel(${idx})">🗑️</button>` : ''}
+                    <span style="color:var(--primary);font-size:18px;margin-left:6px;">${open?'▲':'▼'}</span>
+                </div>
+                ${open ? rkDetail(m, idx) : ''}
+            </div>`;
+        });
+        c.innerHTML = h;
+    }
+
+    function rkDetail(m, idx) {
+        const data = m.data||[];
+        let h = '<div style="padding:10px 12px;">';
+        if (isAdmin) {
+            h += `<label style="display:block;border:2px dashed #ddd;border-radius:10px;padding:10px;text-align:center;color:#aaa;font-size:13px;cursor:pointer;margin-bottom:8px;">📂 重新上传 xlsx<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkUpload(this,${idx})"></label>`;
+            h += `<button onclick="rkToggleEdit(${idx})" style="width:100%;padding:8px;border:1px solid #ddd;background:#fff;border-radius:8px;color:#666;font-size:13px;cursor:pointer;margin-bottom:8px;">✏️ 直接编辑数据</button>`;
+            h += `<div id="rk-edit-area-${idx}"></div>`;
+        }
+        if (!data.length) { h += '<div style="text-align:center;color:#ccc;padding:20px;">暂无数据</div></div>'; return h; }
+        const groups = {};
+        data.forEach(p => { const g=p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
+        Object.keys(groups).forEach(g => {
+            const players = groups[g].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small);
+            h += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
+            players.forEach((p,i) => {
+                const cls=i===0?'rk-rank-1':i===1?'rk-rank-2':i===2?'rk-rank-3':'';
+                h += `<tr class="${cls}"><td><span class="rk-rank">${i+1}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-blue">${p.small??0}</td><td class="rk-blue">${p.big??0}</td><td class="rk-gray">${p.total||'0/7'}</td></tr>`;
+            });
+            h += '</tbody></table>';
+        });
+        h += '</div>';
+        return h;
+    }
+
+    function rkToggle(idx) { rkOpenIdx = rkOpenIdx===idx?null:idx; renderRanking(); }
+
+    function rkRename(idx) {
+        const t = prompt('请输入比赛标题', rankingList[idx].title||'');
+        if (t===null) return;
+        rankingList[idx].title = t.trim()||'未命名比赛';
+        renderRanking();
+    }
+
+    function rkDel(idx) {
+        if (!confirm('确定删除这场比赛？')) return;
+        rankingList.splice(idx,1);
+        if (rkOpenIdx>=rankingList.length) rkOpenIdx=null;
+        renderRanking();
+    }
+
+    function rkNewEmpty() {
+        const t = prompt('请输入比赛标题');
+        if (!t) return;
+        rankingList.unshift({title:t.trim(), data:[]});
+        rkOpenIdx=0; renderRanking();
+    }
+
+    function rkToggleEdit(idx) {
+        const area = document.getElementById('rk-edit-area-'+idx);
+        if (!area) return;
+        if (area.innerHTML.trim()) { area.innerHTML=''; return; }
+        rkRenderEdit(idx);
+    }
+
+    function rkRenderEdit(idx) {
+        const area = document.getElementById('rk-edit-area-'+idx);
+        if (!area) return;
+        const data = rankingList[idx].data||[];
+        let h = '<div style="background:#fff;border-radius:12px;padding:10px;margin-top:4px;overflow-x:auto;"><div style="font-size:12px;color:#999;margin-bottom:6px;">点击单元格直接编辑</div><table class="rk-edit-table"><thead><tr><th>组别</th><th>选手ID</th><th>小场分</th><th>大场分</th><th>场次</th><th></th></tr></thead><tbody>';
+        h += data.map((p,i) => `<tr>
+            <td><input value="${p.group||''}" onchange="rankingList[${idx}].data[${i}].group=this.value"></td>
+            <td><input value="${p.id||''}" onchange="rankingList[${idx}].data[${i}].id=this.value"></td>
+            <td><input type="number" value="${p.small??0}" onchange="rankingList[${idx}].data[${i}].small=+this.value" style="width:45px"></td>
+            <td><input type="number" value="${p.big??0}" onchange="rankingList[${idx}].data[${i}].big=+this.value" style="width:45px"></td>
+            <td><input value="${p.total||'0/7'}" onchange="rankingList[${idx}].data[${i}].total=this.value" style="width:40px"></td>
+            <td><button style="color:red;border:none;background:none;cursor:pointer;font-size:14px;" onclick="rankingList[${idx}].data.splice(${i},1);rkRenderEdit(${idx})">✕</button></td>
+        </tr>`).join('');
+        h += `</tbody></table><button onclick="rankingList[${idx}].data.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});rkRenderEdit(${idx})" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>`;
+        area.innerHTML = h;
+    }
+
+    function rkUpload(input, idx) {
+        const file = input.files[0];
+        if (!file) return;
+        if (typeof XLSX==='undefined') { showCloudToast('❌ 解析库未加载'); return; }
+        const fname = file.name.replace(/\.[^.]+$/,'');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const wb = XLSX.read(e.target.result,{type:'array'});
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+                const parsed=[]; let group='胜者组',colMap={},found=false;
+                for (const row of rows) {
+                    const s = row.map(c=>String(c||'')).join('');
+                    if (!s.trim()) continue;
+                    if (s.includes('胜')&&s.includes('者')&&!s.includes('ID')&&!s.includes('选手')) { group='胜者组'; continue; }
+                    if (s.includes('败')&&s.includes('者')&&!s.includes('ID')&&!s.includes('选手')) { group='败者组'; continue; }
+                    if (!found&&s.includes('选手')&&s.includes('分')) {
+                        colMap={};
+                        row.forEach((c,i)=>{ const v=String(c||'').trim();
+                            if(v==='选手ID'||v==='ID'||v==='选手') colMap.id=i;
+                            if(v==='小场分') colMap.small=i;
+                            if(v==='大场分') colMap.big=i;
+                            if(v==='场次') colMap.total=i;
+                        });
+                        if(colMap.id!==undefined) found=true; continue;
+                    }
+                    if(found&&colMap.id!==undefined){
+                        const id=String(row[colMap.id]||'').trim();
+                        if(!id) continue;
+                        parsed.push({group,id,small:Number(row[colMap.small])||0,big:Number(row[colMap.big])||0,total:colMap.total!==undefined?String(row[colMap.total]||'0/7'):'0/7'});
+                    }
+                }
+                if (!parsed.length) { showCloudToast('⚠️ 未能解析到数据'); return; }
+                if (idx===-1) {
+                    const t = prompt('请输入比赛标题', fname);
+                    if (!t) return;
+                    rankingList.unshift({title:t.trim()||fname, data:parsed});
+                    rkOpenIdx=0;
+                } else {
+                    rankingList[idx].data = parsed;
+                }
+                showCloudToast('✅ 解析成功，共'+parsed.length+'名选手');
+                renderRanking();
+            } catch(err) { showCloudToast('❌ 解析失败: '+err.message); }
+        };
+        reader.readAsArrayBuffer(file);
+        input.value='';
+    }
+
     function renderAll() {
         renderBanner();
         if(activePage === 'community') {
             renderCommunity();
-        } else {
+        } else if(activePage === 'tier') {
             renderTier();
+        } else if(activePage === 'ranking') {
+            renderRanking();
         }
     }
 
