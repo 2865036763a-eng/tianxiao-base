@@ -242,6 +242,115 @@
     let rankingList = []; // [{title, data:[...]}]
     let rkCurrentIdx = null; // 当前展开的比赛索引
 
+    const WORKER_URL = 'https://pvz-api.pvzdlc.qzz.io';
+    let isAdmin = false;
+    let adminToken = null;
+
+    function clearCache() {
+        if (confirm('清理本地缓存并重新从云端加载？')) {
+            localStorage.clear();
+            sessionStorage.clear();
+            location.reload();
+        }
+    }
+
+    async function cloudLoad() {
+        try {
+            const res = await fetch(`${WORKER_URL}/api/data`);
+            if (!res.ok) throw new Error('网络错误');
+            const parsed = await res.json();
+            resources = parsed.resources || [];
+            tierData = parsed.tierData || [];
+            if (parsed.navTags) navTags = parsed.navTags;
+            bannerData = parsed.bannerData || [];
+            rankingList = parsed.rankingList || [];
+        } catch(e) {
+            showCloudToast('⚠️ 云端加载失败');
+        }
+    }
+
+    async function cloudSave() {
+        if (!adminToken) { showCloudToast('❌ 未登录'); return; }
+        try {
+            const res = await fetch(`${WORKER_URL}/api/data`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({ resources, tierData, navTags, bannerData, rankingList }),
+            });
+            const result = await res.json();
+            if (!res.ok) {
+                showCloudToast('❌ ' + (result.error || '同步失败'));
+                if (res.status === 401) { adminToken = null; isAdmin = false; renderAll(); }
+            } else {
+                showCloudToast('✅ 已同步到云端');
+            }
+        } catch(e) {
+            showCloudToast('❌ 网络错误，请重试');
+        }
+    }
+
+    async function adminLogin() {
+        const pwd = prompt('请输入管理密码');
+        if (!pwd) return;
+        try {
+            const res = await fetch(`${WORKER_URL}/api/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pwd }),
+            });
+            const result = await res.json();
+            if (result.success && result.token) {
+                adminToken = result.token;
+                isAdmin = true;
+                document.getElementById('admin-controls').style.display = 'flex';
+                document.getElementById('admin-editor').style.display = 'none';
+                renderAll();
+                showCloudToast('✅ 登录成功');
+            } else {
+                showCloudToast('❌ ' + (result.message || '登录失败'));
+            }
+        } catch(e) {
+            showCloudToast('❌ 网络错误');
+        }
+    }
+
+    function showCloudToast(msg) {
+        let toast = document.getElementById('cloud-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'cloud-toast';
+            toast.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+    }
+
+    function toggleAdmin() {
+        if (!isAdmin) {
+            adminLogin();
+        } else {
+            isAdmin = false;
+            adminToken = null;
+            document.getElementById('admin-editor').style.display = 'none';
+            document.getElementById('admin-controls').style.display = 'none';
+            renderAll();
+        }
+    }
+
+    window.onload = async function() {
+        document.body.insertAdjacentHTML('afterbegin', '<div id="cloud-loading" style="position:fixed;inset:0;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;font-size:16px;color:#ff6699;">☁️ 正在加载云端数据…</div>');
+        await cloudLoad();
+        document.getElementById('cloud-loading').remove();
+        isAdmin = false;
+        document.getElementById('admin-controls').style.display = 'none';
+        document.getElementById('admin-editor').style.display = 'none';
+        renderAll();
+    };
+
+
+
     // ===== 积分榜：渲染比赛列表 =====
     function renderRanking() {
         const container = document.getElementById('page-ranking');
@@ -552,18 +661,6 @@
     function closeModal() { document.getElementById('detail-modal').style.display = 'none'; }
 
     // ==== 管理员与编辑器逻辑 ====
-    function toggleAdmin() {
-        if (!isAdmin) {
-            adminLogin();
-        } else {
-            isAdmin = false;
-            adminToken = null;
-            
-            document.getElementById('admin-editor').style.display = 'none';
-            document.getElementById('admin-controls').style.display = 'none';
-            renderAll();
-        }
-    }
 
     function showEditor(type) {
         editMode = type;
