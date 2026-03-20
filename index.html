@@ -208,6 +208,7 @@
     let resources = []; 
     let tierData = [];
     let navTags = ["全部", "最新咨询", "梯度", "版本", "比赛时间"];
+    let bannerData = [];
 </script>
 
 <script>
@@ -223,7 +224,7 @@
     const WORKER_URL = 'https://pvz-api.pvzdlc.qzz.io';
 
     function showBannerEditor() {
-        const banners = (resources._banners) || [];
+        const banners = (bannerData) || [];
         const list = document.getElementById('banner-list');
         list.innerHTML = '';
         banners.forEach((b, i) => list.appendChild(bannerSlideEl(b, i)));
@@ -243,18 +244,18 @@
     }
 
     function bannerFieldUpdate(i, field, val) {
-        if (!resources._banners) resources._banners = [];
-        resources._banners[i][field] = val;
+        if (!bannerData) bannerData = [];
+        bannerData[i][field] = val;
     }
 
     function bannerAddSlide() {
-        if (!resources._banners) resources._banners = [];
-        resources._banners.push({ img: '', link: '', title: '' });
+        if (!bannerData) bannerData = [];
+        bannerData.push({ img: '', link: '', title: '' });
         showBannerEditor();
     }
 
     function bannerRemove(i) {
-        resources._banners.splice(i, 1);
+        bannerData.splice(i, 1);
         showBannerEditor();
     }
 
@@ -268,7 +269,7 @@
     let bannerTimer = null;
 
     function renderBanner() {
-        const banners = (resources._banners) || [];
+        const banners = (bannerData) || [];
         const wrap = document.getElementById('banner-wrap');
         const track = document.getElementById('banner-track');
         const dots = document.getElementById('banner-dots');
@@ -288,7 +289,7 @@
     }
 
     function bannerMove(dir) {
-        const banners = (resources._banners) || [];
+        const banners = (bannerData) || [];
         if (!banners.length) return;
         bannerIndex = (bannerIndex + dir + banners.length) % banners.length;
         bannerUpdate();
@@ -315,6 +316,7 @@
             resources = parsed.resources || [];
             tierData = parsed.tierData || [];
             if (parsed.navTags) navTags = parsed.navTags;
+            bannerData = parsed.bannerData || [];
         } catch(e) {
             showCloudToast('⚠️ 云端加载失败');
         }
@@ -329,7 +331,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${adminToken}`,
                 },
-                body: JSON.stringify({ resources, tierData, navTags }),
+                body: JSON.stringify({ resources, tierData, navTags, bannerData }),
             });
             const result = await res.json();
             if (!res.ok) {
@@ -457,10 +459,9 @@
         const list = document.getElementById('page-community');
         list.innerHTML = "";
 
-        // 置顶文章排最前
+        // 置顶文章排最前，保留原始索引
         const sorted = resources
             .map((res, i) => ({ res, i }))
-            .filter(({ res }) => !res._isBanner)
             .sort((a, b) => (b.res.pinned ? 1 : 0) - (a.res.pinned ? 1 : 0));
 
         sorted.forEach(({ res, i }) => {
