@@ -531,6 +531,34 @@
         return h;
     }
 
+
+    function rkRefreshDetail(idx) {
+        // 只重新渲染排行榜表格部分，不影响编辑区
+        const container = document.getElementById('page-ranking');
+        if (!container) return;
+        const data = rankingList[idx].data || [];
+        const groups = {};
+        data.forEach(p => { const g=p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
+        // 找到并更新排行榜表格区域
+        const tables = container.querySelectorAll('.rk-group-title, .rk-table');
+        tables.forEach(el => el.remove());
+        // 重新插入排行榜
+        const editArea = document.getElementById('rk-edit-area-'+idx);
+        let html = '';
+        Object.keys(groups).forEach(g => {
+            const players = groups[g].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small);
+            html += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
+            players.forEach((p,i) => {
+                const cls=i===0?'rk-rank-1':i===1?'rk-rank-2':i===2?'rk-rank-3':'';
+                html += `<tr class="${cls}"><td><span class="rk-rank">${i+1}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-blue">${p.small??0}</td><td class="rk-blue">${p.big??0}</td><td class="rk-gray">${p.total||'0/7'}</td></tr>`;
+            });
+            html += '</tbody></table>';
+        });
+        if (editArea) {
+            editArea.insertAdjacentHTML('afterend', html);
+        }
+    }
+
     function rkToggle(idx) { rkOpenIdx = rkOpenIdx===idx?null:idx; renderRanking(); }
 
     function rkRename(idx) {
@@ -572,9 +600,9 @@
             <td><input type="number" value="${p.small??0}" onchange="rankingList[${idx}].data[${i}].small=+this.value" style="width:45px"></td>
             <td><input type="number" value="${p.big??0}" onchange="rankingList[${idx}].data[${i}].big=+this.value" style="width:45px"></td>
             <td><input value="${p.total||'0/7'}" onchange="rankingList[${idx}].data[${i}].total=this.value" style="width:40px"></td>
-            <td><button style="color:red;border:none;background:none;cursor:pointer;font-size:14px;" onclick="rankingList[${idx}].data.splice(${i},1);rkRenderEdit(${idx});renderRanking()">✕</button></td>
+            <td><button style="color:red;border:none;background:none;cursor:pointer;font-size:14px;" onclick="rankingList[${idx}].data.splice(${i},1);rkRenderEdit(${idx});rkRefreshDetail(${idx})">✕</button></td>
         </tr>`).join('');
-        h += `</tbody></table><button onclick="rankingList[${idx}].data.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});rkRenderEdit(${idx});renderRanking()" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>`;
+        h += `</tbody></table><button onclick="rankingList[${idx}].data.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});rkRenderEdit(${idx});rkRefreshDetail(${idx})" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>`;
         area.innerHTML = h;
     }
 
