@@ -378,7 +378,7 @@
                 showCloudToast('✅ 已同步到云端');
             }
         } catch(e) {
-            showCloudToast('❌ 网络错误，请重试');
+            showCloudToast('❌ ' + e.message);
         }
     }
 
@@ -403,7 +403,7 @@
                 showCloudToast('❌ ' + (result.message || '登录失败'));
             }
         } catch(e) {
-            showCloudToast('❌ 网络错误');
+            showCloudToast('❌ ' + e.message);
         }
     }
 
