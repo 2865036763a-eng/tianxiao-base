@@ -60,7 +60,7 @@
         #banner-wrap { width:100%; overflow:hidden; background:#000; position:relative; }
         #banner-slider { position:relative; width:100%; overflow:hidden; }
         #banner-track { display:flex; transition:transform 0.4s ease; }
-        #banner-track a { flex:0 0 100%; display:block; }
+        #banner-track a { flex:0 0 100%; display:block; position:relative; }
         #banner-track img { width:100%; height:180px; object-fit:contain; background:#000; display:block; }
         #banner-dots { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:10; }
         .b-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.5); cursor:pointer; transition:background 0.3s; }
@@ -280,7 +280,7 @@
         track.innerHTML = banners.map(b => `
             <a href="${b.link || 'javascript:void(0)'}" ${b.link ? 'target="_blank"' : ''}>
                 <img src="${b.img}" alt="${b.title || ''}">
-                ${b.title ? `<div style="position:absolute;bottom:28px;left:0;width:100%;text-align:center;color:#fff;font-size:13px;font-weight:bold;text-shadow:0 1px 4px rgba(0,0,0,0.7);padding:0 10px;">${b.title}</div>` : ''}
+                ${b.title ? `<div style="text-align:center;color:#fff;font-size:13px;font-weight:bold;background:rgba(0,0,0,0.5);padding:4px 10px;">${b.title}</div>` : ''}
             </a>
         `).join('');
         dots.innerHTML = banners.map((_, i) => `<div class="b-dot ${i===0?'active':''}" onclick="bannerGo(${i})"></div>`).join('');
