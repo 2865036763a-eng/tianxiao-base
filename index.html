@@ -60,9 +60,9 @@
         #banner-wrap { width:100%; overflow:hidden; background:#000; position:relative; }
         #banner-slider { position:relative; width:100%; overflow:hidden; }
         #banner-track { display:flex; transition:transform 0.4s ease; }
-        #banner-track a { flex:0 0 100%; display:block; position:relative; }
-        #banner-track img { width:100%; height:180px; object-fit:contain; background:#000; display:block; }
-        #banner-dots { position:absolute; bottom:32px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:10; }
+        #banner-track a { flex:0 0 100%; display:block; }
+        #banner-track img { width:100%; height:180px; object-fit:cover; display:block; }
+        #banner-dots { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:10; }
         .b-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.5); cursor:pointer; transition:background 0.3s; }
         .b-dot.active { background:#fff; }
         #banner-prev, #banner-next { position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.35); color:#fff; border:none; font-size:24px; padding:4px 10px; cursor:pointer; z-index:10; border-radius:4px; }
@@ -70,6 +70,33 @@
         #banner-next { right:6px; }
 
         
+
+        /* ===== 积分榜 ===== */
+        .pin-badge { display:inline-block;font-size:10px;background:#ff6699;color:#fff;padding:1px 6px;border-radius:4px;margin-right:5px;vertical-align:middle; }
+        .rk-match-card { background:#fff;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden; }
+        .rk-match-header { display:flex;align-items:center;padding:14px 15px;cursor:pointer; }
+        .rk-match-title { font-size:16px;font-weight:bold;flex:1;color:#222; }
+        .rk-arrow { color:var(--primary);font-size:18px;margin-left:6px; }
+        .rk-admin-btn { margin-left:6px;border:1px solid;background:none;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer; }
+        .rk-group-title { font-size:15px;font-weight:bold;color:#fff;background:var(--primary);padding:8px 15px;border-radius:10px 10px 0 0;margin-top:12px; }
+        .rk-table { width:100%;border-collapse:collapse;background:#fff;border-radius:0 0 12px 12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06); }
+        .rk-table th { background:#f8f8f8;color:#888;font-size:12px;padding:8px 4px;text-align:center;border-bottom:1px solid #eee; }
+        .rk-table td { padding:10px 4px;text-align:center;border-bottom:1px solid #f5f5f5;font-size:14px; }
+        .rk-table tr:last-child td { border-bottom:none; }
+        .rk-rank { font-weight:bold;font-size:15px;color:var(--primary); }
+        .rk-rank-1 .rk-rank { color:#f5a623;font-size:17px; }
+        .rk-rank-2 .rk-rank { color:#9b9b9b; }
+        .rk-rank-3 .rk-rank { color:#cd7f32; }
+        .rk-name { font-weight:bold;color:#222;text-align:left;padding-left:8px; }
+        .rk-blue { font-weight:bold;color:#1e90ff; }
+        .rk-gray { color:#999;font-size:12px; }
+        .rk-edit-wrap { background:#fff;border-radius:12px;padding:12px;margin-top:8px;overflow-x:auto; }
+        .rk-edit-table { width:100%;border-collapse:collapse;font-size:12px;min-width:400px; }
+        .rk-edit-table th { background:#f8f8f8;padding:7px 4px;text-align:center;border:1px solid #eee;color:#666; }
+        .rk-edit-table td { border:1px solid #eee;padding:2px; }
+        .rk-edit-table input { width:100%;border:none;padding:5px 3px;font-size:12px;text-align:center;background:transparent; }
+        .rk-edit-table input:focus { background:#fff5f8;outline:none; }
+
         .card { background: var(--card); border-radius: 15px; border: 1px solid #e0e0e0; overflow: hidden; margin-bottom:12px; }
         .card-main { display: flex; cursor: pointer; }
         .card-thumb { width: 110px; min-width: 110px; max-height: 130px; background: #eee; overflow: hidden; }
@@ -78,36 +105,13 @@
         .card-title { font-size: 15px; font-weight: bold; color: #222; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
         .pin-badge { display:inline-block; font-size:10px; background:#ff6699; color:#fff; padding:1px 6px; border-radius:4px; margin-right:5px; vertical-align:middle; }
         .card-tag { display: inline-block; font-size: 10px; color: var(--primary); border: 1px solid var(--primary); padding: 0 5px; border-radius: 4px; margin-top: 8px; margin-right: 4px; }
-        .detail-pane { display: none; padding: 20px 15px; background: #fff; }
+        .detail-pane { display: none; padding: 20px 15px; background: #fff; border-top: 2px solid #f0f0f0; }
         .card.expanded .detail-pane { display: block; }
         .card.expanded .card-main { display: none; }
-        .full-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid #ddd; line-height: 1.3; color: #000; word-break: break-all; }
+        .full-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; line-height: 1.3; color: #000; word-break: break-all; }
         .article-content { font-size: 16px; line-height: 1.8; color: #333; }
         .article-content p { margin: 0 0 15px 0; word-break: break-all; }
         .article-content img { width: 100%; border-radius: 10px; margin: 10px 0; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-
-
-        /* ======= 积分排行榜样式 ======= */
-        .rk-group-title { font-size: 15px; font-weight: bold; color: #fff; background: var(--primary); padding: 8px 15px; border-radius: 10px 10px 0 0; margin-top: 16px; }
-        .rk-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 0 0 12px 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 4px; }
-        .rk-table th { background: #f8f8f8; color: #888; font-size: 12px; padding: 8px 4px; text-align: center; border-bottom: 1px solid #eee; }
-        .rk-table td { padding: 10px 4px; text-align: center; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
-        .rk-table tr:last-child td { border-bottom: none; }
-        .rk-rank { font-weight: bold; font-size: 15px; color: var(--primary); }
-        .rk-rank-1 .rk-rank { color: #f5a623; font-size: 17px; }
-        .rk-rank-2 .rk-rank { color: #9b9b9b; }
-        .rk-rank-3 .rk-rank { color: #cd7f32; }
-        .rk-name { font-weight: bold; color: #222; text-align: left; padding-left: 8px; }
-        .rk-big { font-weight: bold; color: #1e90ff; }
-        .rk-games { color: #999; font-size: 12px; }
-        .rk-upload-area { border: 2px dashed #ddd; border-radius: 12px; padding: 20px; text-align: center; color: #aaa; font-size: 14px; cursor: pointer; margin: 12px 0; }
-        .rk-edit-wrap { background: #fff; border-radius: 12px; padding: 12px; margin-top: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow-x: auto; }
-        .rk-edit-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 480px; }
-        .rk-edit-table th { background: #f8f8f8; padding: 7px 4px; text-align: center; border: 1px solid #eee; color: #666; }
-        .rk-edit-table td { border: 1px solid #eee; padding: 2px; }
-        .rk-edit-table input { width: 100%; border: none; padding: 5px 3px; font-size: 12px; text-align: center; background: transparent; }
-        .rk-edit-table input:focus { background: #fff5f8; outline: none; }
-        .rk-del-btn { color: red; cursor: pointer; font-size: 14px; background: none; border: none; padding: 3px 6px; }
 
         /* ======= 梯度排行样式 ======= */
         .tier-row { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
@@ -154,7 +158,7 @@
     <button class="ctrl-btn" style="background:#ff9800; border-color:#ff9800; color:#fff;" onclick="showEditor('nav')">🏷️ 管理分类</button>
     <button class="ctrl-btn" style="background:#1e90ff; border-color:#1e90ff; color:#fff;" onclick="cloudSave()">☁️ 保存到云端</button>
     <button class="ctrl-btn" style="background:#9c27b0; border-color:#9c27b0; color:#fff;" onclick="showBannerEditor()">🖼️ 管理轮播图</button>
-    <button class="ctrl-btn" style="background:#e91e63;border-color:#e91e63;color:#fff;" onclick="switchMainPage('ranking')">🏆 编辑积分榜</button>
+    <button class="ctrl-btn" style="background:#e91e63;border-color:#e91e63;color:#fff;" onclick="switchMainPage('ranking')">🏆 积分榜</button>
     <button class="ctrl-btn" onclick="exportHTML()">💾 导出当前数据</button>
 </div>
 
@@ -172,8 +176,6 @@
 </div>
 
 
-<!-- 轮播图展示区 -->
-<div id="banner-wrap" style="display:none;">
     <div id="banner-slider">
         <div id="banner-track"></div>
         <div id="banner-dots"></div>
@@ -209,7 +211,6 @@
     <div id="page-community" class="page-content active"></div>
 
     <div id="page-tier" class="page-content"></div>
-
     <div id="page-ranking" class="page-content"></div>
 </div>
 
@@ -238,13 +239,101 @@
     let resources = []; 
     let tierData = [];
     let navTags = ["全部", "最新咨询", "梯度", "版本", "比赛时间"];
-    let bannerData = [];
     let rankingList = []; // [{title, data:[...]}]
-    let rkCurrentIdx = null; // 当前展开的比赛索引
+    let rkOpenIdx = null;
+    let bannerData = [];
+</script>
 
-    const WORKER_URL = 'https://pvz-api.pvzdlc.qzz.io';
+<script>
     let isAdmin = false;
     let adminToken = null;
+    let activePage = 'community'; // 'community' | 'tier'
+    let currentSide = 'plant';
+    let currentFilter = "全部";
+    let searchQuery = "";
+    let editMode = 'post'; // 'post' | 'tier'
+
+    // ☁️ Cloudflare Worker 地址（结尾不加斜杠）
+    const WORKER_URL = 'https://pvz-api.pvzdlc.qzz.io';
+
+    function showBannerEditor() {
+        const banners = (bannerData) || [];
+        const list = document.getElementById('banner-list');
+        list.innerHTML = '';
+        banners.forEach((b, i) => list.appendChild(bannerSlideEl(b, i)));
+        document.getElementById('banner-editor').style.display = 'block';
+    }
+
+    function bannerSlideEl(b, i) {
+        const div = document.createElement('div');
+        div.style.cssText = 'border:1px solid #eee;border-radius:10px;padding:12px;margin-bottom:10px;';
+        div.innerHTML = `
+            <input placeholder="图片URL（必填）" value="${b.img||''}" oninput="bannerFieldUpdate(${i},'img',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+            <input placeholder="点击跳转链接（可选）" value="${b.link||''}" oninput="bannerFieldUpdate(${i},'link',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+            <input placeholder="底部标题文字（可选）" value="${b.title||''}" oninput="bannerFieldUpdate(${i},'title',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
+            <button onclick="bannerRemove(${i})" style="color:red;border:1px solid red;background:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">删除</button>
+        `;
+        return div;
+    }
+
+    function bannerFieldUpdate(i, field, val) {
+        if (!bannerData) bannerData = [];
+        bannerData[i][field] = val;
+    }
+
+    function bannerAddSlide() {
+        if (!bannerData) bannerData = [];
+        bannerData.push({ img: '', link: '', title: '' });
+        showBannerEditor();
+    }
+
+    function bannerRemove(i) {
+        bannerData.splice(i, 1);
+        showBannerEditor();
+    }
+
+    function bannerSave() {
+        document.getElementById('banner-editor').style.display = 'none';
+        renderBanner();
+    }
+
+    
+    let bannerIndex = 0;
+    let bannerTimer = null;
+
+    function renderBanner() {
+        const banners = (bannerData) || [];
+        const wrap = document.getElementById('banner-wrap');
+        const track = document.getElementById('banner-track');
+        const dots = document.getElementById('banner-dots');
+        if (!banners.length) { wrap.style.display = 'none'; return; }
+        wrap.style.display = 'block';
+        track.innerHTML = banners.map(b => `
+            <a href="${b.link || 'javascript:void(0)'}" ${b.link ? 'target="_blank"' : ''}>
+                <img src="${b.img}" alt="${b.title || ''}">
+                ${b.title ? `<div style="position:absolute;bottom:28px;left:0;width:100%;text-align:center;color:#fff;font-size:13px;font-weight:bold;text-shadow:0 1px 4px rgba(0,0,0,0.7);padding:0 10px;">${b.title}</div>` : ''}
+            </a>
+        `).join('');
+        dots.innerHTML = banners.map((_, i) => `<div class="b-dot ${i===0?'active':''}" onclick="bannerGo(${i})"></div>`).join('');
+        bannerIndex = 0;
+        bannerUpdate();
+        clearInterval(bannerTimer);
+        if (banners.length > 1) bannerTimer = setInterval(() => bannerMove(1), 4000);
+    }
+
+    function bannerMove(dir) {
+        const banners = (bannerData) || [];
+        if (!banners.length) return;
+        bannerIndex = (bannerIndex + dir + banners.length) % banners.length;
+        bannerUpdate();
+    }
+
+    function bannerGo(i) { bannerIndex = i; bannerUpdate(); }
+
+    function bannerUpdate() {
+        document.getElementById('banner-track').style.transform = `translateX(-${bannerIndex * 100}%)`;
+        document.querySelectorAll('.b-dot').forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
+    }
 
     function clearCache() {
         if (confirm('清理本地缓存并重新从云端加载？')) {
@@ -263,7 +352,6 @@
             tierData = parsed.tierData || [];
             if (parsed.navTags) navTags = parsed.navTags;
             bannerData = parsed.bannerData || [];
-            rankingList = parsed.rankingList || [];
         } catch(e) {
             showCloudToast('⚠️ 云端加载失败');
         }
@@ -274,12 +362,16 @@
         try {
             const res = await fetch(`${WORKER_URL}/api/data`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-                body: JSON.stringify({ resources, tierData, navTags, bannerData, rankingList }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${adminToken}`,
+                },
+                body: JSON.stringify({ resources, tierData, navTags, bannerData }),
             });
             const result = await res.json();
             if (!res.ok) {
                 showCloudToast('❌ ' + (result.error || '同步失败'));
+                // Token 失效则退出登录
                 if (res.status === 401) { adminToken = null; isAdmin = false; renderAll(); }
             } else {
                 showCloudToast('✅ 已同步到云端');
@@ -327,214 +419,57 @@
         setTimeout(() => { toast.style.opacity = '0'; }, 2500);
     }
 
-    function toggleAdmin() {
-        if (!isAdmin) {
-            adminLogin();
-        } else {
-            isAdmin = false;
-            adminToken = null;
-            document.getElementById('admin-editor').style.display = 'none';
-            document.getElementById('admin-controls').style.display = 'none';
-            renderAll();
-        }
-    }
-
+    // 页面启动初始化
     window.onload = async function() {
         document.body.insertAdjacentHTML('afterbegin', '<div id="cloud-loading" style="position:fixed;inset:0;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;font-size:16px;color:#ff6699;">☁️ 正在加载云端数据…</div>');
+        
         await cloudLoad();
+        
         document.getElementById('cloud-loading').remove();
+        
         isAdmin = false;
         document.getElementById('admin-controls').style.display = 'none';
         document.getElementById('admin-editor').style.display = 'none';
+        
         renderAll();
     };
 
-
-
-    // ===== 积分榜：渲染比赛列表 =====
-    function renderRanking() {
-        const container = document.getElementById('page-ranking');
-        let html = '';
-
-        if (isAdmin) {
-            html += '<label style="display:block;border:2px dashed #ddd;border-radius:12px;padding:14px;text-align:center;color:#aaa;font-size:14px;cursor:pointer;margin:0 0 10px;">📂 上传 xlsx 新建比赛<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkHandleFile(this)"></label>';
-            html += '<button onclick="rkNewEmpty()" style="width:100%;padding:12px;border:2px dashed #ff6699;background:#fff;border-radius:12px;color:#ff6699;font-size:14px;font-weight:bold;cursor:pointer;margin-bottom:12px;">➕ 手动新建比赛</button>';
-        }
-
-        if (!rankingList.length) {
-            html += '<div style="text-align:center;color:#ccc;padding:40px;font-size:15px;">暂无比赛数据</div>';
-            container.innerHTML = html;
-            return;
-        }
-
-        rankingList.forEach((match, idx) => {
-            const isOpen = rkCurrentIdx === idx;
-            html += `<div style="background:#fff;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">
-                <div style="display:flex;align-items:center;padding:14px 15px;cursor:pointer;border-bottom:${isOpen?'2px solid #ff6699':'none'};" onclick="rkToggle(${idx})">
-                    <span style="font-size:16px;font-weight:bold;flex:1;color:#222;">🏆 ${match.title||'未命名比赛'}</span>
-                    <span style="color:#ff6699;font-size:18px;">${isOpen?'▲':'▼'}</span>
-                    ${isAdmin ? `<button onclick="event.stopPropagation();rkEditTitle(${idx})" style="margin-left:8px;color:#1e90ff;border:1px solid #1e90ff;background:none;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;">✏️</button>
-                    <button onclick="event.stopPropagation();rkDeleteMatch(${idx})" style="margin-left:4px;color:red;border:1px solid red;background:none;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;">🗑️</button>` : ''}
-                </div>
-                ${isOpen ? rkRenderMatchDetail(match, idx) : ''}
-            </div>`;
-        });
-
-        container.innerHTML = html;
+    // 页面与选项卡切换逻辑
+    function switchMainPage(page) {
+        activePage = page;
+        // 切换顶部激活状态
+        document.querySelectorAll('.tab-item').forEach(el => el.classList.toggle('active', el.innerText.includes(page==='community'?'社区':'梯度')));
+        
+        // 切换内容区域
+        document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        
+        // 切换工具栏元素
+        document.getElementById('nav').style.display = (page === 'community') ? 'flex' : 'none';
+        document.getElementById('side-switcher-wrap').style.display = (page === 'tier') ? 'block' : 'none';
+        
+        // 切换提示词
+        document.getElementById('search-input').placeholder = (page === 'community') ? "🔍 搜标题、标签、或内容..." : "🔍 搜角色名称或特性...";
+        
+        renderAll();
     }
 
-    function rkRenderMatchDetail(match, idx) {
-        const data = match.data || [];
-        if (!data.length) return '<div style="text-align:center;color:#ccc;padding:20px;">暂无数据</div>';
-
-        const groups = {};
-        data.forEach(p => { const g = p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
-
-        let html = '<div style="padding:10px 12px;">';
-
-        // 管理员编辑区
-        if (isAdmin) {
-            html += `<label style="display:block;border:2px dashed #ddd;border-radius:10px;padding:10px;text-align:center;color:#aaa;font-size:13px;cursor:pointer;margin-bottom:10px;">📂 重新上传 xlsx<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkHandleFileUpdate(this,${idx})"></label>`;
-            html += `<div id="rk-edit-area-${idx}"></div>`;
-            html += `<button onclick="rkToggleEditDetail(${idx})" style="width:100%;padding:8px;border:1px solid #ddd;background:#fff;border-radius:8px;color:#666;font-size:13px;cursor:pointer;margin-bottom:10px;">✏️ 直接编辑数据</button>`;
-        }
-
-        Object.keys(groups).forEach(g => {
-            const players = groups[g].sort((a,b) => b.big!==a.big ? b.big-a.big : b.small-a.small);
-            html += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
-            players.forEach((p,i) => {
-                const cls = i===0?'rk-rank-1':i===1?'rk-rank-2':i===2?'rk-rank-3':'';
-                html += `<tr class="${cls}"><td><span class="rk-rank">${i+1}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-big">${p.small??0}</td><td class="rk-big">${p.big??0}</td><td class="rk-games">${p.total||'0/7'}</td></tr>`;
-            });
-            html += '</tbody></table>';
-        });
-        html += '</div>';
-        return html;
+    function switchSide(side) {
+        currentSide = side;
+        document.getElementById('btn-plant').classList.toggle('active', side === 'plant');
+        document.getElementById('btn-zombie').classList.toggle('active', side === 'zombie');
+        renderAll();
     }
 
-    function rkToggle(idx) {
-        rkCurrentIdx = rkCurrentIdx === idx ? null : idx;
-        renderRanking();
+    function setFilter(tag) { 
+        currentFilter = tag; 
+        renderAll(); 
     }
 
-    function rkEditTitle(idx) {
-        const t = prompt('请输入比赛标题', rankingList[idx].title||'');
-        if (t === null) return;
-        rankingList[idx].title = t.trim() || '未命名比赛';
-        renderRanking();
+    function handleSearch() {
+        searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
+        renderAll();
     }
-
-    function rkDeleteMatch(idx) {
-        if (!confirm('确定删除这场比赛数据？')) return;
-        rankingList.splice(idx, 1);
-        if (rkCurrentIdx >= rankingList.length) rkCurrentIdx = null;
-        renderRanking();
-    }
-
-    function rkNewEmpty() {
-        const t = prompt('请输入比赛标题');
-        if (!t) return;
-        rankingList.unshift({ title: t.trim(), data: [] });
-        rkCurrentIdx = 0;
-        renderRanking();
-    }
-
-    function rkToggleEditDetail(idx) {
-        const area = document.getElementById(`rk-edit-area-${idx}`);
-        if (!area) return;
-        if (area.innerHTML) { area.innerHTML = ''; return; }
-        const data = rankingList[idx].data || [];
-        let html = '<div class="rk-edit-wrap"><div style="overflow-x:auto"><table class="rk-edit-table"><thead><tr><th>组别</th><th>选手ID</th><th>小场分</th><th>大场分</th><th>场次</th><th></th></tr></thead><tbody>';
-        html += data.map((p,i) => `<tr>
-            <td><input value="${p.group||''}" onchange="rankingList[${idx}].data[${i}].group=this.value" placeholder="胜者组"></td>
-            <td><input value="${p.id||''}" onchange="rankingList[${idx}].data[${i}].id=this.value"></td>
-            <td><input type="number" value="${p.small??0}" onchange="rankingList[${idx}].data[${i}].small=+this.value" style="width:50px"></td>
-            <td><input type="number" value="${p.big??0}" onchange="rankingList[${idx}].data[${i}].big=+this.value" style="width:50px"></td>
-            <td><input value="${p.total||'0/7'}" onchange="rankingList[${idx}].data[${i}].total=this.value" style="width:45px"></td>
-            <td><button class="rk-del-btn" onclick="rankingList[${idx}].data.splice(${i},1);rkToggleEditDetail(${idx});rkToggleEditDetail(${idx})">✕</button></td>
-        </tr>`).join('');
-        html += `</tbody></table></div>
-        <button onclick="rankingList[${idx}].data.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});rkToggleEditDetail(${idx});rkToggleEditDetail(${idx})" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>`;
-        area.innerHTML = html;
-    }
-
-    function rkHandleFileUpdate(input, idx) {
-        rkParseFile(input, function(parsed, title) {
-            if (idx !== undefined) {
-                rankingList[idx].data = parsed;
-            }
-            renderRanking();
-        });
-    }
-
-    function rkHandleFile(input) {
-        rkParseFile(input, function(parsed, filename) {
-            const t = prompt('请输入这场比赛的标题', filename);
-            if (t === null) return;
-            rankingList.unshift({ title: t.trim()||'新比赛', data: parsed });
-            rkCurrentIdx = 0;
-            renderRanking();
-        });
-    }
-
-    function rkParseFile(input, callback) {
-        const file = input.files[0];
-        if (!file) return;
-        if (typeof XLSX === 'undefined') { showCloudToast('❌ 解析库未加载'); return; }
-        const filename = file.name.replace(/\.[^.]+$/, '');
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const wb = XLSX.read(e.target.result, {type:'array'});
-                const ws = wb.Sheets[wb.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-                const parsed = [];
-                let currentGroup = '胜者组';
-                let colMap = {};
-                let headerFound = false;
-                for (let ri = 0; ri < rows.length; ri++) {
-                    const row = rows[ri];
-                    const rowStr = row.map(c => String(c||'')).join('');
-                    if (!rowStr.trim()) continue;
-                    if (rowStr.includes('胜') && rowStr.includes('者') && !rowStr.includes('ID') && !rowStr.includes('选手')) {
-                        currentGroup = '胜者组'; continue;
-                    }
-                    if (rowStr.includes('败') && rowStr.includes('者') && !rowStr.includes('ID') && !rowStr.includes('选手')) {
-                        currentGroup = '败者组'; continue;
-                    }
-                    if (!headerFound && rowStr.includes('选手') && rowStr.includes('分')) {
-                        colMap = {};
-                        row.forEach((cell, ci) => {
-                            const c = String(cell||'').trim();
-                            if (c === '选手ID' || c === 'ID' || c === '选手') colMap.id = ci;
-                            if (c === '小场分') colMap.small = ci;
-                            if (c === '大场分') colMap.big = ci;
-                            if (c === '场次') colMap.total = ci;
-                        });
-                        if (colMap.id !== undefined) headerFound = true;
-                        continue;
-                    }
-                    if (headerFound && colMap.id !== undefined) {
-                        const id = String(row[colMap.id]||'').trim();
-                        if (!id) continue;
-                        parsed.push({
-                            group: currentGroup,
-                            id,
-                            small: Number(row[colMap.small]) || 0,
-                            big: Number(row[colMap.big]) || 0,
-                            total: colMap.total !== undefined ? String(row[colMap.total]||'0/7') : '0/7'
-                        });
-                    }
-                }
-                if (!parsed.length) { showCloudToast('⚠️ 未能解析到数据'); return; }
-                showCloudToast('✅ 解析成功，共 '+parsed.length+' 名选手');
-                callback(parsed, filename);
-            } catch(err) { showCloudToast('❌ 解析失败: ' + err.message); }
-        };
-        reader.readAsArrayBuffer(file);
-        input.value = '';
-    }
-
 
     function renderAll() {
         renderBanner();
@@ -582,11 +517,7 @@
             if (res.pinned) card.style.border = '1.5px solid #ff6699';
             card.onclick = () => {
                 if(isAdmin) { loadToForm_Post(i); return; }
-                const isExpanded = card.classList.contains('expanded');
-                // 关闭所有已展开的卡片
-                document.querySelectorAll('.card.expanded').forEach(c => c.classList.remove('expanded'));
-                // 如果当前卡片之前是关闭的，则展开它
-                if (!isExpanded) card.classList.add('expanded');
+                card.classList.toggle('expanded');
             };
 
             card.innerHTML = `
@@ -661,6 +592,18 @@
     function closeModal() { document.getElementById('detail-modal').style.display = 'none'; }
 
     // ==== 管理员与编辑器逻辑 ====
+    function toggleAdmin() {
+        if (!isAdmin) {
+            adminLogin();
+        } else {
+            isAdmin = false;
+            adminToken = null;
+            
+            document.getElementById('admin-editor').style.display = 'none';
+            document.getElementById('admin-controls').style.display = 'none';
+            renderAll();
+        }
+    }
 
     function showEditor(type) {
         editMode = type;
