@@ -458,7 +458,7 @@
         document.getElementById('side-switcher-wrap').style.display = (page === 'tier') ? 'block' : 'none';
         
         // 切换提示词
-        document.getElementById('search-input').placeholder = (page === 'community') ? "🔍 搜标题、标签、或内容..." : "🔍 搜角色名称或特性...";
+        document.getElementById('search-input').placeholder = page==='community' ? '🔍 搜标题、标签、或内容...' : page==='tier' ? '🔍 搜角色名称或特性...' : '🔍 搜积分榜...';
         
         renderAll();
     }
