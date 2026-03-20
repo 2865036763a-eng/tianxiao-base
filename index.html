@@ -154,7 +154,7 @@
     <button class="ctrl-btn" style="background:#ff9800; border-color:#ff9800; color:#fff;" onclick="showEditor('nav')">🏷️ 管理分类</button>
     <button class="ctrl-btn" style="background:#1e90ff; border-color:#1e90ff; color:#fff;" onclick="cloudSave()">☁️ 保存到云端</button>
     <button class="ctrl-btn" style="background:#9c27b0; border-color:#9c27b0; color:#fff;" onclick="showBannerEditor()">🖼️ 管理轮播图</button>
-    <button class="ctrl-btn" style="background:#e91e63;border-color:#e91e63;color:#fff;" onclick="switchMainPage('ranking');rkToggleEdit()">🏆 编辑积分榜</button>
+    <button class="ctrl-btn" style="background:#e91e63;border-color:#e91e63;color:#fff;" onclick="switchMainPage('ranking')">🏆 编辑积分榜</button>
     <button class="ctrl-btn" onclick="exportHTML()">💾 导出当前数据</button>
 </div>
 
@@ -239,313 +239,140 @@
     let tierData = [];
     let navTags = ["全部", "最新咨询", "梯度", "版本", "比赛时间"];
     let bannerData = [];
-    let rankingData = []; // 积分排行榜数据
-    let rkEditMode = false;
-</script>
+    let rankingList = []; // [{title, data:[...]}]
+    let rkCurrentIdx = null; // 当前展开的比赛索引
 
-<script>
-    let isAdmin = false;
-    let adminToken = null;
-    let activePage = 'community'; // 'community' | 'tier'
-    let currentSide = 'plant';
-    let currentFilter = "全部";
-    let searchQuery = "";
-    let editMode = 'post'; // 'post' | 'tier'
-
-    // ☁️ Cloudflare Worker 地址（结尾不加斜杠）
-    const WORKER_URL = 'https://pvz-api.pvzdlc.qzz.io';
-
-    function showBannerEditor() {
-        const banners = (bannerData) || [];
-        const list = document.getElementById('banner-list');
-        list.innerHTML = '';
-        banners.forEach((b, i) => list.appendChild(bannerSlideEl(b, i)));
-        document.getElementById('banner-editor').style.display = 'block';
-    }
-
-    function bannerSlideEl(b, i) {
-        const div = document.createElement('div');
-        div.style.cssText = 'border:1px solid #eee;border-radius:10px;padding:12px;margin-bottom:10px;';
-        div.innerHTML = `
-            <input placeholder="图片URL（必填）" value="${b.img||''}" oninput="bannerFieldUpdate(${i},'img',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
-            <input placeholder="点击跳转链接（可选）" value="${b.link||''}" oninput="bannerFieldUpdate(${i},'link',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
-            <input placeholder="底部标题文字（可选）" value="${b.title||''}" oninput="bannerFieldUpdate(${i},'title',this.value)" style="width:100%;padding:8px;margin-bottom:6px;border:1px solid #ddd;border-radius:8px;font-size:13px;">
-            <button onclick="bannerRemove(${i})" style="color:red;border:1px solid red;background:none;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">删除</button>
-        `;
-        return div;
-    }
-
-    function bannerFieldUpdate(i, field, val) {
-        if (!bannerData) bannerData = [];
-        bannerData[i][field] = val;
-    }
-
-    function bannerAddSlide() {
-        if (!bannerData) bannerData = [];
-        bannerData.push({ img: '', link: '', title: '' });
-        showBannerEditor();
-    }
-
-    function bannerRemove(i) {
-        bannerData.splice(i, 1);
-        showBannerEditor();
-    }
-
-    function bannerSave() {
-        document.getElementById('banner-editor').style.display = 'none';
-        renderBanner();
-    }
-
-    
-    let bannerIndex = 0;
-    let bannerTimer = null;
-
-    function renderBanner() {
-        const banners = (bannerData) || [];
-        const wrap = document.getElementById('banner-wrap');
-        const track = document.getElementById('banner-track');
-        const dots = document.getElementById('banner-dots');
-        if (!banners.length) { wrap.style.display = 'none'; return; }
-        wrap.style.display = 'block';
-        track.innerHTML = banners.map(b => `
-            <a href="${b.link || 'javascript:void(0)'}" ${b.link ? 'target="_blank"' : ''}>
-                <img src="${b.img}" alt="${b.title || ''}">
-                ${b.title ? `<div style="position:absolute;bottom:0;left:0;width:100%;background:rgba(0,0,0,0.45);color:#fff;font-size:13px;font-weight:bold;padding:6px 12px;">${b.title}</div>` : ''}
-            </a>
-        `).join('');
-        dots.innerHTML = banners.map((_, i) => `<div class="b-dot ${i===0?'active':''}" onclick="bannerGo(${i})"></div>`).join('');
-        bannerIndex = 0;
-        bannerUpdate();
-        clearInterval(bannerTimer);
-        if (banners.length > 1) bannerTimer = setInterval(() => bannerMove(1), 4000);
-    }
-
-    function bannerMove(dir) {
-        const banners = (bannerData) || [];
-        if (!banners.length) return;
-        bannerIndex = (bannerIndex + dir + banners.length) % banners.length;
-        bannerUpdate();
-    }
-
-    function bannerGo(i) { bannerIndex = i; bannerUpdate(); }
-
-    function bannerUpdate() {
-        document.getElementById('banner-track').style.transform = `translateX(-${bannerIndex * 100}%)`;
-        document.querySelectorAll('.b-dot').forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
-    }
-
-    function clearCache() {
-        if (confirm('清理本地缓存并重新从云端加载？')) {
-            localStorage.clear();
-            sessionStorage.clear();
-            location.reload();
-        }
-    }
-
-    async function cloudLoad() {
-        try {
-            const res = await fetch(`${WORKER_URL}/api/data`);
-            if (!res.ok) throw new Error('网络错误');
-            const parsed = await res.json();
-            resources = parsed.resources || [];
-            tierData = parsed.tierData || [];
-            if (parsed.navTags) navTags = parsed.navTags;
-            bannerData = parsed.bannerData || [];
-            rankingData = parsed.rankingData || [];
-        } catch(e) {
-            showCloudToast('⚠️ 云端加载失败');
-        }
-    }
-
-    async function cloudSave() {
-        if (!adminToken) { showCloudToast('❌ 未登录'); return; }
-        try {
-            const res = await fetch(`${WORKER_URL}/api/data`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${adminToken}`,
-                },
-                body: JSON.stringify({ resources, tierData, navTags, bannerData, rankingData }),
-            });
-            const result = await res.json();
-            if (!res.ok) {
-                showCloudToast('❌ ' + (result.error || '同步失败'));
-                // Token 失效则退出登录
-                if (res.status === 401) { adminToken = null; isAdmin = false; renderAll(); }
-            } else {
-                showCloudToast('✅ 已同步到云端');
-            }
-        } catch(e) {
-            showCloudToast('❌ 网络错误，请重试');
-        }
-    }
-
-    async function adminLogin() {
-        const pwd = prompt('请输入管理密码');
-        if (!pwd) return;
-        try {
-            const res = await fetch(`${WORKER_URL}/api/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: pwd }),
-            });
-            const result = await res.json();
-            if (result.success && result.token) {
-                adminToken = result.token;
-                isAdmin = true;
-                document.getElementById('admin-controls').style.display = 'flex';
-                document.getElementById('admin-editor').style.display = 'none';
-                renderAll();
-                showCloudToast('✅ 登录成功');
-            } else {
-                showCloudToast('❌ ' + (result.message || '登录失败'));
-            }
-        } catch(e) {
-            showCloudToast('❌ 网络错误');
-        }
-    }
-
-    function showCloudToast(msg) {
-        let toast = document.getElementById('cloud-toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'cloud-toast';
-            toast.style.cssText = 'position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;';
-            document.body.appendChild(toast);
-        }
-        toast.textContent = msg;
-        toast.style.opacity = '1';
-        setTimeout(() => { toast.style.opacity = '0'; }, 2500);
-    }
-
-    // 页面启动初始化
-    window.onload = async function() {
-        document.body.insertAdjacentHTML('afterbegin', '<div id="cloud-loading" style="position:fixed;inset:0;background:rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;font-size:16px;color:#ff6699;">☁️ 正在加载云端数据…</div>');
-        
-        await cloudLoad();
-        
-        document.getElementById('cloud-loading').remove();
-        
-        isAdmin = false;
-        document.getElementById('admin-controls').style.display = 'none';
-        document.getElementById('admin-editor').style.display = 'none';
-        
-        renderAll();
-    };
-
-    // 页面与选项卡切换逻辑
-    function switchMainPage(page) {
-        activePage = page;
-        // 切换顶部激活状态
-        document.querySelectorAll('.tab-item').forEach(el => {
-            const txt = el.innerText;
-            el.classList.toggle('active',
-                (page==='community' && txt.includes('社区')) ||
-                (page==='tier' && txt.includes('梯度')) ||
-                (page==='ranking' && txt.includes('积分'))
-            );
-        });
-        
-        // 切换内容区域
-        document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
-        document.getElementById('page-' + page).classList.add('active');
-        
-        // 切换工具栏元素
-        document.getElementById('nav').style.display = (page === 'community') ? 'flex' : 'none';
-        document.getElementById('side-switcher-wrap').style.display = (page === 'tier') ? 'block' : 'none';
-        
-        // 切换提示词
-        if (page === 'community') document.getElementById('search-input').placeholder = "🔍 搜标题、标签、或内容...";
-        else if (page === 'tier') document.getElementById('search-input').placeholder = "🔍 搜角色名称或特性...";
-        else document.getElementById('search-input').placeholder = "🔍 搜积分榜...";
-
-        
-        if (page === 'ranking') renderRanking();
-        else renderAll();
-    }
-
-    function switchSide(side) {
-        currentSide = side;
-        document.getElementById('btn-plant').classList.toggle('active', side === 'plant');
-        document.getElementById('btn-zombie').classList.toggle('active', side === 'zombie');
-        renderAll();
-    }
-
-    function setFilter(tag) { 
-        currentFilter = tag; 
-        renderAll(); 
-    }
-
-    function handleSearch() {
-        searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
-        renderAll();
-    }
-
-
-    // ===== 积分排行榜 =====
+    // ===== 积分榜：渲染比赛列表 =====
     function renderRanking() {
         const container = document.getElementById('page-ranking');
-        const uploadBtn = isAdmin ? '<label style="display:block;border:2px dashed #ddd;border-radius:12px;padding:16px;text-align:center;color:#aaa;font-size:14px;cursor:pointer;margin:8px 0;">📂 点击上传 xlsx<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkHandleFile(this)"></label>' : '';
-        if (!rankingData.length) {
-            container.innerHTML = '<div style="text-align:center;color:#ccc;padding:40px;font-size:15px;">暂无积分数据</div>' + uploadBtn;
+        let html = '';
+
+        if (isAdmin) {
+            html += '<label style="display:block;border:2px dashed #ddd;border-radius:12px;padding:14px;text-align:center;color:#aaa;font-size:14px;cursor:pointer;margin:0 0 10px;">📂 上传 xlsx 新建比赛<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkHandleFile(this)"></label>';
+            html += '<button onclick="rkNewEmpty()" style="width:100%;padding:12px;border:2px dashed #ff6699;background:#fff;border-radius:12px;color:#ff6699;font-size:14px;font-weight:bold;cursor:pointer;margin-bottom:12px;">➕ 手动新建比赛</button>';
+        }
+
+        if (!rankingList.length) {
+            html += '<div style="text-align:center;color:#ccc;padding:40px;font-size:15px;">暂无比赛数据</div>';
+            container.innerHTML = html;
             return;
         }
-        const groups = {};
-        rankingData.forEach(p => { const g = p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
-        let html = uploadBtn;
-        Object.keys(groups).forEach(g => {
-            const players = groups[g].sort((a,b) => b.big!==a.big ? b.big-a.big : b.small-a.small);
-            html += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
-            players.forEach((p,idx) => {
-                const cls = idx===0?'rk-rank-1':idx===1?'rk-rank-2':idx===2?'rk-rank-3':'';
-                html += `<tr class="${cls}"><td><span class="rk-rank">${idx+1}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-big">${p.small??0}</td><td class="rk-big">${p.big??0}</td><td class="rk-games">${p.total||'0/7'}</td></tr>`;
-            });
-            html += '</tbody></table>';
+
+        rankingList.forEach((match, idx) => {
+            const isOpen = rkCurrentIdx === idx;
+            html += `<div style="background:#fff;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden;">
+                <div style="display:flex;align-items:center;padding:14px 15px;cursor:pointer;border-bottom:${isOpen?'2px solid #ff6699':'none'};" onclick="rkToggle(${idx})">
+                    <span style="font-size:16px;font-weight:bold;flex:1;color:#222;">🏆 ${match.title||'未命名比赛'}</span>
+                    <span style="color:#ff6699;font-size:18px;">${isOpen?'▲':'▼'}</span>
+                    ${isAdmin ? `<button onclick="event.stopPropagation();rkEditTitle(${idx})" style="margin-left:8px;color:#1e90ff;border:1px solid #1e90ff;background:none;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;">✏️</button>
+                    <button onclick="event.stopPropagation();rkDeleteMatch(${idx})" style="margin-left:4px;color:red;border:1px solid red;background:none;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;">🗑️</button>` : ''}
+                </div>
+                ${isOpen ? rkRenderMatchDetail(match, idx) : ''}
+            </div>`;
         });
+
         container.innerHTML = html;
     }
 
-        function rkToggleEdit() {
-        rkEditMode = !rkEditMode;
-        const container = document.getElementById('page-ranking');
-        if (rkEditMode) {
-            renderRanking();
-            let editHtml = '<div class="rk-edit-wrap"><div style="font-size:12px;color:#999;margin-bottom:8px;">点击单元格直接编辑，完成后点「保存到云端」</div><div style="overflow-x:auto"><table class="rk-edit-table"><thead><tr><th>组别</th><th>选手ID</th><th>小场分</th><th>大场分</th><th>场次</th><th></th></tr></thead><tbody id="rk-edit-tbody"></tbody></table></div><button onclick="rkAddRow()" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>';
-            container.innerHTML += editHtml;
-            rkRenderEditTable();
-        } else {
-            renderRanking();
+    function rkRenderMatchDetail(match, idx) {
+        const data = match.data || [];
+        if (!data.length) return '<div style="text-align:center;color:#ccc;padding:20px;">暂无数据</div>';
+
+        const groups = {};
+        data.forEach(p => { const g = p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
+
+        let html = '<div style="padding:10px 12px;">';
+
+        // 管理员编辑区
+        if (isAdmin) {
+            html += `<label style="display:block;border:2px dashed #ddd;border-radius:10px;padding:10px;text-align:center;color:#aaa;font-size:13px;cursor:pointer;margin-bottom:10px;">📂 重新上传 xlsx<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkHandleFileUpdate(this,${idx})"></label>`;
+            html += `<div id="rk-edit-area-${idx}"></div>`;
+            html += `<button onclick="rkToggleEditDetail(${idx})" style="width:100%;padding:8px;border:1px solid #ddd;background:#fff;border-radius:8px;color:#666;font-size:13px;cursor:pointer;margin-bottom:10px;">✏️ 直接编辑数据</button>`;
         }
+
+        Object.keys(groups).forEach(g => {
+            const players = groups[g].sort((a,b) => b.big!==a.big ? b.big-a.big : b.small-a.small);
+            html += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
+            players.forEach((p,i) => {
+                const cls = i===0?'rk-rank-1':i===1?'rk-rank-2':i===2?'rk-rank-3':'';
+                html += `<tr class="${cls}"><td><span class="rk-rank">${i+1}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-big">${p.small??0}</td><td class="rk-big">${p.big??0}</td><td class="rk-games">${p.total||'0/7'}</td></tr>`;
+            });
+            html += '</tbody></table>';
+        });
+        html += '</div>';
+        return html;
     }
 
-    function rkRenderEditTable() {
-        const tbody = document.getElementById('rk-edit-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = rankingData.map((p,i) => `<tr>
-            <td><input value="${p.group||''}" onchange="rankingData[${i}].group=this.value" placeholder="胜者组"></td>
-            <td><input value="${p.id||''}" onchange="rankingData[${i}].id=this.value"></td>
-            <td><input type="number" value="${p.small??0}" onchange="rankingData[${i}].small=+this.value" style="width:50px"></td>
-            <td><input type="number" value="${p.big??0}" onchange="rankingData[${i}].big=+this.value" style="width:50px"></td>
-            <td><input value="${p.total||'0/7'}" onchange="rankingData[${i}].total=this.value" style="width:45px"></td>
-            <td><button class="rk-del-btn" onclick="rkDelRow(${i})">✕</button></td>
+    function rkToggle(idx) {
+        rkCurrentIdx = rkCurrentIdx === idx ? null : idx;
+        renderRanking();
+    }
+
+    function rkEditTitle(idx) {
+        const t = prompt('请输入比赛标题', rankingList[idx].title||'');
+        if (t === null) return;
+        rankingList[idx].title = t.trim() || '未命名比赛';
+        renderRanking();
+    }
+
+    function rkDeleteMatch(idx) {
+        if (!confirm('确定删除这场比赛数据？')) return;
+        rankingList.splice(idx, 1);
+        if (rkCurrentIdx >= rankingList.length) rkCurrentIdx = null;
+        renderRanking();
+    }
+
+    function rkNewEmpty() {
+        const t = prompt('请输入比赛标题');
+        if (!t) return;
+        rankingList.unshift({ title: t.trim(), data: [] });
+        rkCurrentIdx = 0;
+        renderRanking();
+    }
+
+    function rkToggleEditDetail(idx) {
+        const area = document.getElementById(`rk-edit-area-${idx}`);
+        if (!area) return;
+        if (area.innerHTML) { area.innerHTML = ''; return; }
+        const data = rankingList[idx].data || [];
+        let html = '<div class="rk-edit-wrap"><div style="overflow-x:auto"><table class="rk-edit-table"><thead><tr><th>组别</th><th>选手ID</th><th>小场分</th><th>大场分</th><th>场次</th><th></th></tr></thead><tbody>';
+        html += data.map((p,i) => `<tr>
+            <td><input value="${p.group||''}" onchange="rankingList[${idx}].data[${i}].group=this.value" placeholder="胜者组"></td>
+            <td><input value="${p.id||''}" onchange="rankingList[${idx}].data[${i}].id=this.value"></td>
+            <td><input type="number" value="${p.small??0}" onchange="rankingList[${idx}].data[${i}].small=+this.value" style="width:50px"></td>
+            <td><input type="number" value="${p.big??0}" onchange="rankingList[${idx}].data[${i}].big=+this.value" style="width:50px"></td>
+            <td><input value="${p.total||'0/7'}" onchange="rankingList[${idx}].data[${i}].total=this.value" style="width:45px"></td>
+            <td><button class="rk-del-btn" onclick="rankingList[${idx}].data.splice(${i},1);rkToggleEditDetail(${idx});rkToggleEditDetail(${idx})">✕</button></td>
         </tr>`).join('');
+        html += `</tbody></table></div>
+        <button onclick="rankingList[${idx}].data.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});rkToggleEditDetail(${idx});rkToggleEditDetail(${idx})" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>`;
+        area.innerHTML = html;
     }
 
-    function rkAddRow() {
-        rankingData.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});
-        rkRenderEditTable();
-    }
-
-    function rkDelRow(i) {
-        rankingData.splice(i,1);
-        rkRenderEditTable();
+    function rkHandleFileUpdate(input, idx) {
+        rkParseFile(input, function(parsed, title) {
+            if (idx !== undefined) {
+                rankingList[idx].data = parsed;
+            }
+            renderRanking();
+        });
     }
 
     function rkHandleFile(input) {
+        rkParseFile(input, function(parsed, filename) {
+            const t = prompt('请输入这场比赛的标题', filename);
+            if (t === null) return;
+            rankingList.unshift({ title: t.trim()||'新比赛', data: parsed });
+            rkCurrentIdx = 0;
+            renderRanking();
+        });
+    }
+
+    function rkParseFile(input, callback) {
         const file = input.files[0];
         if (!file) return;
         if (typeof XLSX === 'undefined') { showCloudToast('❌ 解析库未加载'); return; }
+        const filename = file.name.replace(/\.[^.]+$/, '');
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
@@ -556,23 +383,16 @@
                 let currentGroup = '胜者组';
                 let colMap = {};
                 let headerFound = false;
-
                 for (let ri = 0; ri < rows.length; ri++) {
                     const row = rows[ri];
-                    // 合并行内所有单元格文字用于判断
                     const rowStr = row.map(c => String(c||'')).join('');
-
                     if (!rowStr.trim()) continue;
-
-                    // 检测组别行：行内合并后包含"胜者组"或"败者组"（可能分散在多列）
                     if (rowStr.includes('胜') && rowStr.includes('者') && !rowStr.includes('ID') && !rowStr.includes('选手')) {
                         currentGroup = '胜者组'; continue;
                     }
                     if (rowStr.includes('败') && rowStr.includes('者') && !rowStr.includes('ID') && !rowStr.includes('选手')) {
                         currentGroup = '败者组'; continue;
                     }
-
-                    // 检测表头行
                     if (!headerFound && rowStr.includes('选手') && rowStr.includes('分')) {
                         colMap = {};
                         row.forEach((cell, ci) => {
@@ -581,13 +401,10 @@
                             if (c === '小场分') colMap.small = ci;
                             if (c === '大场分') colMap.big = ci;
                             if (c === '场次') colMap.total = ci;
-                            if (c === '排名') colMap.rank = ci;
                         });
-                        if (colMap.id !== undefined) { headerFound = true; }
+                        if (colMap.id !== undefined) headerFound = true;
                         continue;
                     }
-
-                    // 数据行
                     if (headerFound && colMap.id !== undefined) {
                         const id = String(row[colMap.id]||'').trim();
                         if (!id) continue;
@@ -600,20 +417,15 @@
                         });
                     }
                 }
-
-                if (!parsed.length) {
-                    showCloudToast('⚠️ 未能解析到数据');
-                    return;
-                }
-                rankingData = parsed;
+                if (!parsed.length) { showCloudToast('⚠️ 未能解析到数据'); return; }
                 showCloudToast('✅ 解析成功，共 '+parsed.length+' 名选手');
-                renderRanking();
-                if (rkEditMode) rkRenderEditTable();
+                callback(parsed, filename);
             } catch(err) { showCloudToast('❌ 解析失败: ' + err.message); }
         };
         reader.readAsArrayBuffer(file);
-        input.value='';
+        input.value = '';
     }
+
 
     function renderAll() {
         renderBanner();
