@@ -572,9 +572,9 @@
             <td><input type="number" value="${p.small??0}" onchange="rankingList[${idx}].data[${i}].small=+this.value" style="width:45px"></td>
             <td><input type="number" value="${p.big??0}" onchange="rankingList[${idx}].data[${i}].big=+this.value" style="width:45px"></td>
             <td><input value="${p.total||'0/7'}" onchange="rankingList[${idx}].data[${i}].total=this.value" style="width:40px"></td>
-            <td><button style="color:red;border:none;background:none;cursor:pointer;font-size:14px;" onclick="rankingList[${idx}].data.splice(${i},1);rkRenderEdit(${idx})">✕</button></td>
+            <td><button style="color:red;border:none;background:none;cursor:pointer;font-size:14px;" onclick="rankingList[${idx}].data.splice(${i},1);rkRenderEdit(${idx});renderRanking()">✕</button></td>
         </tr>`).join('');
-        h += `</tbody></table><button onclick="rankingList[${idx}].data.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});rkRenderEdit(${idx})" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>`;
+        h += `</tbody></table><button onclick="rankingList[${idx}].data.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});rkRenderEdit(${idx});renderRanking()" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>`;
         area.innerHTML = h;
     }
 
