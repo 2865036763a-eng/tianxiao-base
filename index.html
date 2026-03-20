@@ -239,14 +239,14 @@
     let resources = []; 
     let tierData = [];
     let navTags = ["全部", "最新咨询", "梯度", "版本", "比赛时间"];
+    let rankingList = []; // [{title, data:[...]}]
+    let rkOpenIdx = null;
     let bannerData = [];
 </script>
 
 <script>
     let isAdmin = false;
     let adminToken = null;
-    let rankingList = []; // [{title, data:[...]}]
-    let rkOpenIdx = null;
     let activePage = 'community'; // 'community' | 'tier'
     let currentSide = 'plant';
     let currentFilter = "全部";
@@ -352,6 +352,7 @@
             tierData = parsed.tierData || [];
             if (parsed.navTags) navTags = parsed.navTags;
             bannerData = parsed.bannerData || [];
+            rankingList = parsed.rankingList || [];
             rankingList = parsed.rankingList || [];
         } catch(e) {
             showCloudToast('⚠️ 云端加载失败');
@@ -553,7 +554,6 @@
     }
 
     function rkToggleEdit(idx) {
-        if (!isAdmin) return;
         const area = document.getElementById('rk-edit-area-'+idx);
         if (!area) return;
         if (area.innerHTML.trim()) { area.innerHTML=''; return; }
