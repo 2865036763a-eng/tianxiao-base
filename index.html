@@ -553,6 +553,7 @@
     }
 
     function rkToggleEdit(idx) {
+        if (!isAdmin) return;
         const area = document.getElementById('rk-edit-area-'+idx);
         if (!area) return;
         if (area.innerHTML.trim()) { area.innerHTML=''; return; }
