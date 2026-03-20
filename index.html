@@ -302,13 +302,15 @@
         document.querySelectorAll('.b-dot').forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
     }
 
-    
+    function clearCache() {
         if (confirm('清理本地缓存并重新从云端加载？')) {
             localStorage.clear();
             sessionStorage.clear();
             location.reload();
         }
     }
+
+    async function cloudLoad() {
         try {
             const res = await fetch(`${WORKER_URL}/api/data`);
             if (!res.ok) throw new Error('网络错误');
