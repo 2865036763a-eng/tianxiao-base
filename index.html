@@ -456,7 +456,9 @@
         document.getElementById('side-switcher-wrap').style.display = (page === 'tier') ? 'block' : 'none';
         
         // 切换提示词
-        document.getElementById('search-input').placeholder = (page === 'community') ? "🔍 搜标题、标签、或内容..." : "🔍 搜角色名称或特性...";
+        if (page === 'community') document.getElementById('search-input').placeholder = "🔍 搜标题、标签、或内容...";
+        else if (page === 'tier') document.getElementById('search-input').placeholder = "🔍 搜角色名称或特性...";
+        else document.getElementById('search-input').placeholder = "";
         
         if (page === 'ranking') renderRanking();
         else renderAll();
@@ -508,7 +510,7 @@
         const container = document.getElementById('page-ranking');
         if (rkEditMode) {
             renderRanking();
-            let editHtml = '<div class="rk-edit-wrap"><div style="font-size:12px;color:#999;margin-bottom:8px;">点击单元格直接编辑，完成后点「保存到云端」</div><div style="overflow-x:auto"><table class="rk-edit-table"><thead><tr><th>组别</th><th>选手ID</th><th>小场分</th><th>大场分</th><th>场次</th><th>删</th></tr></thead><tbody id="rk-edit-tbody"></tbody></table></div><button onclick="rkAddRow()" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>';
+            let editHtml = '<div class="rk-edit-wrap"><div style="font-size:12px;color:#999;margin-bottom:8px;">点击单元格直接编辑，完成后点「保存到云端」</div><div style="overflow-x:auto"><table class="rk-edit-table"><thead><tr><th>组别</th><th>选手ID</th><th>小场分</th><th>大场分</th><th>场次</th><th></th></tr></thead><tbody id="rk-edit-tbody"></tbody></table></div><button onclick="rkAddRow()" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>';
             container.innerHTML += editHtml;
             rkRenderEditTable();
         } else {
@@ -563,10 +565,10 @@
 
                     // 检测组别行：行内合并后包含"胜者组"或"败者组"（可能分散在多列）
                     if (rowStr.includes('胜') && rowStr.includes('者') && !rowStr.includes('ID') && !rowStr.includes('选手')) {
-                        currentGroup = '胜者组'; headerFound = false; continue;
+                        currentGroup = '胜者组'; continue;
                     }
                     if (rowStr.includes('败') && rowStr.includes('者') && !rowStr.includes('ID') && !rowStr.includes('选手')) {
-                        currentGroup = '败者组'; headerFound = false; continue;
+                        currentGroup = '败者组'; continue;
                     }
 
                     // 检测表头行
@@ -902,3 +904,4 @@
 </script>
 </body>
 </html>
+
