@@ -492,11 +492,11 @@
         rankingData.forEach(p => { const g = p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
         let html = uploadBtn;
         Object.keys(groups).forEach(g => {
-            const players = groups[g].sort((a,b) => b.big!==a.big ? b.big-a.big : b.win-a.win);
+            const players = groups[g].sort((a,b) => b.big!==a.big ? b.big-a.big : b.small-a.small);
             html += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
             players.forEach((p,idx) => {
                 const cls = idx===0?'rk-rank-1':idx===1?'rk-rank-2':idx===2?'rk-rank-3':'';
-                html += `<tr class="${cls}"><td><span class="rk-rank">${idx+1}</span></td><td class="rk-name">${p.id||'-'}</td><td>${p.win??0}胜 ${p.lose??0}负</td><td class="rk-big">${p.big??0}</td><td class="rk-games">${p.total||'0/7'}</td></tr>`;
+                html += `<tr class="${cls}"><td><span class="rk-rank">${idx+1}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-big">${p.small??0}</td><td class="rk-big">${p.big??0}</td><td class="rk-games">${p.total||'0/7'}</td></tr>`;
             });
             html += '</tbody></table>';
         });
@@ -508,7 +508,7 @@
         const container = document.getElementById('page-ranking');
         if (rkEditMode) {
             renderRanking();
-            let editHtml = '<div class="rk-edit-wrap"><div style="font-size:12px;color:#999;margin-bottom:8px;">点击单元格直接编辑，完成后点「保存到云端」</div><div style="overflow-x:auto"><table class="rk-edit-table"><thead><tr><th>组别</th><th>选手ID</th><th>胜</th><th>负</th><th>大场分</th><th>场次</th><th>删</th></tr></thead><tbody id="rk-edit-tbody"></tbody></table></div><button onclick="rkAddRow()" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>';
+            let editHtml = '<div class="rk-edit-wrap"><div style="font-size:12px;color:#999;margin-bottom:8px;">点击单元格直接编辑，完成后点「保存到云端」</div><div style="overflow-x:auto"><table class="rk-edit-table"><thead><tr><th>组别</th><th>选手ID</th><th>小场分</th><th>大场分</th><th>场次</th><th>删</th></tr></thead><tbody id="rk-edit-tbody"></tbody></table></div><button onclick="rkAddRow()" style="width:100%;margin-top:8px;padding:10px;border:2px dashed #ddd;background:#fff;border-radius:8px;color:#aaa;cursor:pointer;">➕ 添加选手</button></div>';
             container.innerHTML += editHtml;
             rkRenderEditTable();
         } else {
@@ -522,16 +522,15 @@
         tbody.innerHTML = rankingData.map((p,i) => `<tr>
             <td><input value="${p.group||''}" onchange="rankingData[${i}].group=this.value" placeholder="胜者组"></td>
             <td><input value="${p.id||''}" onchange="rankingData[${i}].id=this.value"></td>
-            <td><input type="number" value="${p.win??0}" onchange="rankingData[${i}].win=+this.value" style="width:40px"></td>
-            <td><input type="number" value="${p.lose??0}" onchange="rankingData[${i}].lose=+this.value" style="width:40px"></td>
-            <td><input type="number" value="${p.big??0}" onchange="rankingData[${i}].big=+this.value" style="width:40px"></td>
+            <td><input type="number" value="${p.small??0}" onchange="rankingData[${i}].small=+this.value" style="width:50px"></td>
+            <td><input type="number" value="${p.big??0}" onchange="rankingData[${i}].big=+this.value" style="width:50px"></td>
             <td><input value="${p.total||'0/7'}" onchange="rankingData[${i}].total=this.value" style="width:45px"></td>
             <td><button class="rk-del-btn" onclick="rkDelRow(${i})">✕</button></td>
         </tr>`).join('');
     }
 
     function rkAddRow() {
-        rankingData.push({group:'胜者组',id:'',win:0,lose:0,big:0,total:'0/7'});
+        rankingData.push({group:'胜者组',id:'',small:0,big:0,total:'0/7'});
         rkRenderEditTable();
     }
 
@@ -543,7 +542,7 @@
     function rkHandleFile(input) {
         const file = input.files[0];
         if (!file) return;
-        if (typeof XLSX === 'undefined') { showCloudToast('❌ 解析库未加载，请稍后重试'); return; }
+        if (typeof XLSX === 'undefined') { showCloudToast('❌ 解析库未加载'); return; }
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
@@ -552,44 +551,62 @@
                 const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
                 const parsed = [];
                 let currentGroup = '胜者组';
-                let headerFound = false;
                 let colMap = {};
-                rows.forEach(row => {
-                    const rowStr = row.join('').toLowerCase();
-                    if (rowStr.includes('胜者') || rowStr.includes('败者')) {
-                        const gc = row.find(c => String(c).includes('胜') || String(c).includes('败'));
-                        if (gc) currentGroup = String(gc).trim();
-                        headerFound = false; return;
+                let headerFound = false;
+
+                for (let ri = 0; ri < rows.length; ri++) {
+                    const row = rows[ri];
+                    // 合并行内所有单元格文字用于判断
+                    const rowStr = row.map(c => String(c||'')).join('');
+
+                    if (!rowStr.trim()) continue;
+
+                    // 检测组别行：行内合并后包含"胜者组"或"败者组"（可能分散在多列）
+                    if (rowStr.includes('胜') && rowStr.includes('者') && !rowStr.includes('ID') && !rowStr.includes('选手')) {
+                        currentGroup = '胜者组'; headerFound = false; continue;
                     }
-                    if (!headerFound && (rowStr.includes('id') || rowStr.includes('选手') || rowStr.includes('大场'))) {
+                    if (rowStr.includes('败') && rowStr.includes('者') && !rowStr.includes('ID') && !rowStr.includes('选手')) {
+                        currentGroup = '败者组'; headerFound = false; continue;
+                    }
+
+                    // 检测表头行
+                    if (!headerFound && rowStr.includes('选手') && rowStr.includes('分')) {
                         colMap = {};
-                        row.forEach((cell,ci) => {
-                            const c = String(cell).toLowerCase();
-                            if (c.includes('id')||c.includes('选手')) colMap.id=ci;
-                            if (c.includes('小场')&&(c.includes('胜')||c.includes('win'))) colMap.win=ci;
-                            if (c.includes('小场')&&(c.includes('负')||c.includes('lose'))) colMap.lose=ci;
-                            if (c.includes('大场')) colMap.big=ci;
-                            if (c.includes('场次')||c.includes('total')) colMap.total=ci;
-                            if (c.includes('组')) colMap.group=ci;
+                        row.forEach((cell, ci) => {
+                            const c = String(cell||'').trim();
+                            if (c === '选手ID' || c === 'ID' || c === '选手') colMap.id = ci;
+                            if (c === '小场分') colMap.small = ci;
+                            if (c === '大场分') colMap.big = ci;
+                            if (c === '场次') colMap.total = ci;
+                            if (c === '排名') colMap.rank = ci;
                         });
-                        headerFound=true; return;
+                        if (colMap.id !== undefined) { headerFound = true; }
+                        continue;
                     }
-                    if (headerFound && colMap.id!==undefined) {
+
+                    // 数据行
+                    if (headerFound && colMap.id !== undefined) {
                         const id = String(row[colMap.id]||'').trim();
-                        if (!id||id==='0') return;
+                        if (!id) continue;
                         parsed.push({
-                            group: colMap.group!==undefined ? String(row[colMap.group]||currentGroup) : currentGroup,
-                            id, win:Number(row[colMap.win])||0, lose:Number(row[colMap.lose])||0,
-                            big:Number(row[colMap.big])||0, total:colMap.total!==undefined ? String(row[colMap.total]||'0/7') : '0/7'
+                            group: currentGroup,
+                            id,
+                            small: Number(row[colMap.small]) || 0,
+                            big: Number(row[colMap.big]) || 0,
+                            total: colMap.total !== undefined ? String(row[colMap.total]||'0/7') : '0/7'
                         });
                     }
-                });
-                if (!parsed.length) { showCloudToast('⚠️ 未能解析到数据'); return; }
+                }
+
+                if (!parsed.length) {
+                    showCloudToast('⚠️ 未能解析到数据');
+                    return;
+                }
                 rankingData = parsed;
                 showCloudToast('✅ 解析成功，共 '+parsed.length+' 名选手');
                 renderRanking();
                 if (rkEditMode) rkRenderEditTable();
-            } catch(err) { showCloudToast('❌ 解析失败'); }
+            } catch(err) { showCloudToast('❌ 解析失败: ' + err.message); }
         };
         reader.readAsArrayBuffer(file);
         input.value='';
