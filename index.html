@@ -176,6 +176,7 @@
 </div>
 
 
+<div id="banner-wrap" style="display:none;">
     <div id="banner-slider">
         <div id="banner-track"></div>
         <div id="banner-dots"></div>
@@ -757,9 +758,11 @@
         } else {
             isAdmin = false;
             adminToken = null;
-            
+            rkOpenIdx = null;
             document.getElementById('admin-editor').style.display = 'none';
             document.getElementById('admin-controls').style.display = 'none';
+            // 清空所有积分榜编辑区
+            document.querySelectorAll('[id^="rk-edit-area-"]').forEach(el => el.innerHTML = '');
             renderAll();
         }
     }
