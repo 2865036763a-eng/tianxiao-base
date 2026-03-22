@@ -311,7 +311,7 @@
         track.innerHTML = banners.map(b => `
             <a href="${b.link || 'javascript:void(0)'}" ${b.link ? 'target="_blank"' : ''}>
                 <img src="${b.img}" alt="${b.title || ''}">
-                ${b.title ? `<div style="position:absolute;bottom:28px;left:0;width:100%;text-align:center;color:#fff;font-size:13px;font-weight:bold;text-shadow:0 1px 4px rgba(0,0,0,0.7);padding:0 10px;">${b.title}</div>` : ''}
+                ${b.title ? `<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0) 100%);color:#fff;font-size:13px;font-weight:bold;padding:20px 12px 8px;text-align:left;">${b.title}</div>` : ''}
             </a>
         `).join('');
         dots.innerHTML = banners.map((_, i) => `<div class="b-dot ${i===0?'active':''}" onclick="bannerGo(${i})"></div>`).join('');
