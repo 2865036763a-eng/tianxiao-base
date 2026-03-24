@@ -775,7 +775,10 @@
         head.className = 'stat-header' + (item.side === 'zombie' ? ' is-zombie' : '');
 
         const delZone = document.getElementById('admin-del-zone');
-        delZone.innerHTML = isAdmin ? `<button onclick="doDelete_Tier('${item.name}')" style="margin-top:20px; width:100%; color:red; border:1px solid red; background:none; padding:12px; border-radius:14px; font-weight:bold;">删除该记录</button>` : '';
+        delZone.innerHTML = isAdmin ? `
+            <button onclick="loadToForm_Tier('${item.name}');closeModal()" style="margin-top:20px; width:100%; color:#1e90ff; border:1px solid #1e90ff; background:none; padding:12px; border-radius:14px; font-weight:bold;">✏️ 编辑该记录</button>
+            <button onclick="doDelete_Tier('${item.name}')" style="margin-top:10px; width:100%; color:red; border:1px solid red; background:none; padding:12px; border-radius:14px; font-weight:bold;">删除该记录</button>
+        ` : '';
         
         document.getElementById('detail-modal').style.display = 'flex';
     }
@@ -882,12 +885,30 @@
                 cost: document.getElementById('t-cost').value,
                 desc: document.getElementById('t-desc').value
             };
-            tierData.push(data);
+            const tidx = document.getElementById('edit-idx').value;
+            if (tidx !== '') tierData[tidx] = data; else tierData.push(data);
         }
         
         await cloudSave();
         hideEditor(); 
         renderAll();
+    }
+
+
+    function loadToForm_Tier(name) {
+        const idx = tierData.findIndex(d => d.name === name);
+        if (idx === -1) return;
+        const item = tierData[idx];
+        showEditor('tier');
+        document.getElementById('t-side').value = item.side || 'plant';
+        document.getElementById('t-rank').value = item.rank || 'T0';
+        document.getElementById('t-name').value = item.name || '';
+        document.getElementById('t-img').value = item.img || '';
+        document.getElementById('t-type').value = item.type || '';
+        document.getElementById('t-cooldown').value = item.cooldown || '';
+        document.getElementById('t-cost').value = item.cost || '';
+        document.getElementById('t-desc').value = item.desc || '';
+        document.getElementById('edit-idx').value = idx;
     }
 
     function loadToForm_Post(i) {
