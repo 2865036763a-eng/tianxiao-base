@@ -518,12 +518,15 @@
         if (!data.length) { h += '<div style="text-align:center;color:#ccc;padding:20px;">暂无数据</div></div>'; return h; }
         const groups = {};
         data.forEach(p => { const g=p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
+        // 每组内按大场分降序，相同大场分按小场分降序
+        let globalRank = 1;
         Object.keys(groups).forEach(g => {
             const players = groups[g].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small);
             h += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
-            players.forEach((p,i) => {
-                const cls=i===0?'rk-rank-1':i===1?'rk-rank-2':i===2?'rk-rank-3':'';
-                h += `<tr class="${cls}"><td><span class="rk-rank">${i+1}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-blue">${p.small??0}</td><td class="rk-blue">${p.big??0}</td><td class="rk-gray">${p.total||'0/7'}</td></tr>`;
+            players.forEach((p) => {
+                const r = globalRank++;
+                const cls=r===1?'rk-rank-1':r===2?'rk-rank-2':r===3?'rk-rank-3':'';
+                h += `<tr class="${cls}"><td><span class="rk-rank">${r}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-blue">${p.small??0}</td><td class="rk-blue">${p.big??0}</td><td class="rk-gray">${p.total||'0/7'}</td></tr>`;
             });
             h += '</tbody></table>';
         });
@@ -545,12 +548,14 @@
         // 重新插入排行榜
         const editArea = document.getElementById('rk-edit-area-'+idx);
         let html = '';
+        let globalRank2 = 1;
         Object.keys(groups).forEach(g => {
             const players = groups[g].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small);
             html += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
-            players.forEach((p,i) => {
-                const cls=i===0?'rk-rank-1':i===1?'rk-rank-2':i===2?'rk-rank-3':'';
-                html += `<tr class="${cls}"><td><span class="rk-rank">${i+1}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-blue">${p.small??0}</td><td class="rk-blue">${p.big??0}</td><td class="rk-gray">${p.total||'0/7'}</td></tr>`;
+            players.forEach((p) => {
+                const r = globalRank2++;
+                const cls=r===1?'rk-rank-1':r===2?'rk-rank-2':r===3?'rk-rank-3':'';
+                html += `<tr class="${cls}"><td><span class="rk-rank">${r}</span></td><td class="rk-name">${p.id||'-'}</td><td class="rk-blue">${p.small??0}</td><td class="rk-blue">${p.big??0}</td><td class="rk-gray">${p.total||'0/7'}</td></tr>`;
             });
             html += '</tbody></table>';
         });
