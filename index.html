@@ -497,6 +497,7 @@
             h += `<div class="rk-match-card">
                 <div class="rk-match-header" onclick="rkToggle(${idx})">
                     <span class="rk-match-title">🏆 ${m.title||'未命名比赛'}</span>
+                    <button onclick="event.stopPropagation();rkAutoRank(${idx})" style="margin-left:8px;border:1px solid #ff6699;background:#fff5f8;color:#ff6699;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">🏅 自动排名</button>
                     ${isAdmin ? `<button class="rk-admin-btn" style="color:#1e90ff;border-color:#1e90ff;" onclick="event.stopPropagation();rkRename(${idx})">✏️</button>
                     <button class="rk-admin-btn" style="color:red;border-color:red;" onclick="event.stopPropagation();rkDel(${idx})">🗑️</button>` : ''}
                     <span style="color:var(--primary);font-size:18px;margin-left:6px;">${open?'▲':'▼'}</span>
@@ -512,6 +513,7 @@
         let h = '<div style="padding:10px 12px;">';
         if (isAdmin) {
             h += `<label style="display:block;border:2px dashed #ddd;border-radius:10px;padding:10px;text-align:center;color:#aaa;font-size:13px;cursor:pointer;margin-bottom:8px;">📂 重新上传 xlsx<input type="file" accept=".xlsx,.xls" style="display:none" onchange="rkUpload(this,${idx})"></label>`;
+            h += `<button onclick="rkAutoRank(${idx})" style="width:100%;padding:8px;border:1px solid #ff6699;background:#fff5f8;border-radius:8px;color:#ff6699;font-size:13px;font-weight:bold;cursor:pointer;margin-bottom:8px;">🏅 按大场分自动排名</button>`;
             h += `<button onclick="rkToggleEdit(${idx})" style="width:100%;padding:8px;border:1px solid #ddd;background:#fff;border-radius:8px;color:#666;font-size:13px;cursor:pointer;margin-bottom:8px;">✏️ 直接编辑数据</button>`;
             h += `<div id="rk-edit-area-${idx}"></div>`;
         }
@@ -585,6 +587,17 @@
         if (!t) return;
         rankingList.unshift({title:t.trim(), data:[]});
         rkOpenIdx=0; renderRanking();
+    }
+
+
+    function rkAutoRank(idx) {
+        const data = rankingList[idx].data;
+        if (!data || !data.length) { showCloudToast('⚠️ 暂无数据'); return; }
+        // 整体按大场分降序，相同大场分按小场分降序
+        data.sort((a, b) => b.big !== a.big ? b.big - a.big : b.small - a.small);
+        showCloudToast('✅ 已按大场分自动排名');
+        // 重新渲染
+        renderRanking();
     }
 
     function rkToggleEdit(idx) {
