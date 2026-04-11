@@ -241,6 +241,7 @@
     let navTags = ["全部", "最新咨询", "梯度", "版本", "比赛时间"];
     let rankingList = []; // [{title, data:[...]}]
     let rkOpenIdx = null;
+    let rkAutoRankIdx = null; // 记录当前开启自动排名的比赛
     let bannerData = [];
 </script>
 
@@ -497,7 +498,7 @@
             h += `<div class="rk-match-card">
                 <div class="rk-match-header" onclick="rkToggle(${idx})">
                     <span class="rk-match-title">🏆 ${m.title||'未命名比赛'}</span>
-                    <button onclick="event.stopPropagation();rkAutoRank(${idx})" style="margin-left:8px;border:1px solid #ff6699;background:#fff5f8;color:#ff6699;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">🏅 自动排名</button>
+                    <button onclick="event.stopPropagation();rkToggleAutoRank(${idx})" style="margin-left:8px;border:1px solid #ff6699;background:${rkAutoRankIdx===idx?'#ff6699':'#fff5f8'};color:${rkAutoRankIdx===idx?'#fff':'#ff6699'};padding:4px 8px;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;">🏅 ${rkAutoRankIdx===idx?'取消排名':'自动排名'}</button>
                     ${isAdmin ? `<button class="rk-admin-btn" style="color:#1e90ff;border-color:#1e90ff;" onclick="event.stopPropagation();rkRename(${idx})">✏️</button>
                     <button class="rk-admin-btn" style="color:red;border-color:red;" onclick="event.stopPropagation();rkDel(${idx})">🗑️</button>` : ''}
                     <span style="color:var(--primary);font-size:18px;margin-left:6px;">${open?'▲':'▼'}</span>
@@ -518,12 +519,16 @@
             h += `<div id="rk-edit-area-${idx}"></div>`;
         }
         if (!data.length) { h += '<div style="text-align:center;color:#ccc;padding:20px;">暂无数据</div></div>'; return h; }
+        const displayData = rkAutoRankIdx === idx
+            ? [...data].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small)
+            : data;
         const groups = {};
-        data.forEach(p => { const g=p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
-        // 每组内按大场分降序，相同大场分按小场分降序
+        displayData.forEach(p => { const g=p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
         let globalRank = 1;
         Object.keys(groups).forEach(g => {
-            const players = groups[g].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small);
+            const players = rkAutoRankIdx === idx
+                ? groups[g] // 已整体排序，直接用
+                : groups[g].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small);
             h += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
             players.forEach((p) => {
                 const r = globalRank++;
@@ -566,7 +571,7 @@
         }
     }
 
-    function rkToggle(idx) { rkOpenIdx = rkOpenIdx===idx?null:idx; renderRanking(); }
+    function rkToggle(idx) { if (rkOpenIdx !== idx) rkAutoRankIdx = null; rkOpenIdx = rkOpenIdx===idx?null:idx; renderRanking(); }
 
     function rkRename(idx) {
         const t = prompt('请输入比赛标题', rankingList[idx].title||'');
@@ -590,13 +595,12 @@
     }
 
 
-    function rkAutoRank(idx) {
-        const data = rankingList[idx].data;
-        if (!data || !data.length) { showCloudToast('⚠️ 暂无数据'); return; }
-        // 整体按大场分降序，相同大场分按小场分降序
-        data.sort((a, b) => b.big !== a.big ? b.big - a.big : b.small - a.small);
-        showCloudToast('✅ 已按大场分自动排名');
-        // 重新渲染
+    function rkToggleAutoRank(idx) {
+        if (rkAutoRankIdx === idx) {
+            rkAutoRankIdx = null; // 取消自动排名
+        } else {
+            rkAutoRankIdx = idx; // 开启自动排名
+        }
         renderRanking();
     }
 
