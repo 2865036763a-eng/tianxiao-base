@@ -4655,16 +4655,12 @@ window.onload = async () => {
         navigator.serviceWorker.register(createServiceWorkerBlob()).then(function(registration) {
             console.log('✅ PWA已激活！可以添加到主屏幕了');
             
-            // 监听Service Worker更新
+            // 静默更新：发现新版本自动接管，无需用户确认
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        // 有新版本可用
-                        if (confirm('🎉 发现新版本！是否立即更新？')) {
-                            newWorker.postMessage({ action: 'skipWaiting' });
-                            window.location.reload();
-                        }
+                        newWorker.postMessage({ action: 'skipWaiting' });
                     }
                 });
             });
@@ -4685,7 +4681,7 @@ window.onload = async () => {
 // 创建内联Service Worker
 function createServiceWorkerBlob() {
     const swCode = `
-        const CACHE_NAME = 'tianxiao-cache-v1';
+        const CACHE_NAME = 'tianxiao-cache-v2';
         const urlsToCache = ['/'];
         
         self.addEventListener('install', event => {
