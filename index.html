@@ -225,6 +225,7 @@
             <div class="stat-grid">
                 <div class="stat-box"><div class="stat-label">类型特性</div><div class="stat-val" id="m-type">-</div></div>
                 <div class="stat-box"><div class="stat-label">冷却时间</div><div class="stat-val" id="m-cooldown">-</div></div>
+                <div class="stat-box"><div class="stat-label">血量</div><div class="stat-val" id="m-hp">-</div></div>
 
                 <div class="stat-box"><div class="stat-label">价格消耗</div><div class="stat-val" id="m-cost">-</div></div>
             </div>
@@ -519,16 +520,20 @@
             h += `<div id="rk-edit-area-${idx}"></div>`;
         }
         if (!data.length) { h += '<div style="text-align:center;color:#ccc;padding:20px;">暂无数据</div></div>'; return h; }
-        const displayData = rkAutoRankIdx === idx
-            ? [...data].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small)
-            : data;
         const groups = {};
-        displayData.forEach(p => { const g=p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
+        data.forEach(p => { const g=p.group||'未分组'; if(!groups[g]) groups[g]=[]; groups[g].push(p); });
         let globalRank = 1;
-        Object.keys(groups).forEach(g => {
-            const players = rkAutoRankIdx === idx
-                ? groups[g] // 已整体排序，直接用
-                : groups[g].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small);
+        // 自动排名模式：把所有组的选手合并排序后重新分组
+        const groupKeys = rkAutoRankIdx === idx
+            ? (() => {
+                const allSorted = [...data].sort((a,b) => b.big!==a.big?b.big-a.big:b.small-a.small);
+                const sortedGroups = {};
+                allSorted.forEach(p => { const g=p.group||'未分组'; if(!sortedGroups[g]) sortedGroups[g]=[]; sortedGroups[g].push(p); });
+                return sortedGroups;
+              })()
+            : groups;
+        Object.keys(groupKeys).forEach(g => {
+            const players = groupKeys[g];
             h += `<div class="rk-group-title">📊 ${g}</div><table class="rk-table"><thead><tr><th>排名</th><th style="text-align:left;padding-left:8px;">选手ID</th><th>小场分</th><th>大场分</th><th>场次</th></tr></thead><tbody>`;
             players.forEach((p) => {
                 const r = globalRank++;
@@ -789,6 +794,7 @@
         document.getElementById('m-name').innerText = item.name;
         document.getElementById('m-type').innerText = item.type || '-';
         document.getElementById('m-cooldown').innerText = item.cooldown || '-';
+        document.getElementById('m-hp').innerText = item.hp || '-';
 
         document.getElementById('m-cost').innerText = item.cost || '-';
         document.getElementById('m-desc').innerText = item.desc || '尚未添加强度分析。';
@@ -852,6 +858,7 @@
                 <input id="t-img" class="edit-input" placeholder="头像图片 URL">
                 <input id="t-type" class="edit-input" placeholder="特性/类型 (如: 爆发 控制)">
                 <input id="t-cooldown" class="edit-input" placeholder="冷却时间">
+                <input id="t-hp" class="edit-input" placeholder="血量（如：270 或 150+270）">
         
                 <input id="t-cost" class="edit-input" placeholder="消耗价格">
                 <textarea id="t-desc" class="edit-input" style="height:80px;" placeholder="强度点评..."></textarea>
@@ -903,6 +910,7 @@
                 img: document.getElementById('t-img').value,
                 type: document.getElementById('t-type').value,
                 cooldown: document.getElementById('t-cooldown').value,
+                hp: document.getElementById('t-hp').value,
                 ban: "",
                 cost: document.getElementById('t-cost').value,
                 desc: document.getElementById('t-desc').value
@@ -928,6 +936,7 @@
         document.getElementById('t-img').value = item.img || '';
         document.getElementById('t-type').value = item.type || '';
         document.getElementById('t-cooldown').value = item.cooldown || '';
+        document.getElementById('t-hp').value = item.hp || '';
         document.getElementById('t-cost').value = item.cost || '';
         document.getElementById('t-desc').value = item.desc || '';
         document.getElementById('edit-idx').value = idx;
