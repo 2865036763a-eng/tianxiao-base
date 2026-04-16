@@ -148,6 +148,7 @@
         <div class="tab-item active" onclick="switchMainPage('community')">交流社区</div>
         <div class="tab-item" onclick="switchMainPage('tier')">梯度排行</div>
         <div class="tab-item" onclick="switchMainPage('ranking')">🏆 积分榜</div>
+        <div class="tab-item" onclick="switchMainPage('bp')">⚔️ 对战BP</div>
     </div>
     <div class="admin-lock" onclick="toggleAdmin()">🔒</div>
 </header>
@@ -212,6 +213,8 @@
 
     <div id="page-tier" class="page-content"></div>
     <div id="page-ranking" class="page-content"></div>
+    <div id="page-bp" class="page-content"></div>
+    <div id="bp-edit-overlay" class="bp-edit-overlay"></div>
 </div>
 
 <div class="modal-overlay" id="detail-modal" onclick="closeModal()">
@@ -243,6 +246,8 @@
     let rankingList = []; // [{title, data:[...]}]
     let rkOpenIdx = null;
     let rkAutoRankIdx = null; // 记录当前开启自动排名的比赛
+    let bpList = []; // 对战BP数据
+    let bpOpenIdx = null; // 当前展开的BP
     let bannerData = [];
 </script>
 
@@ -355,6 +360,7 @@
             if (parsed.navTags) navTags = parsed.navTags;
             bannerData = parsed.bannerData || [];
             rankingList = parsed.rankingList || [];
+            bpList = parsed.bpList || [];
         } catch(e) {
             showCloudToast('⚠️ 云端加载失败');
         }
@@ -369,7 +375,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${adminToken}`,
                 },
-                body: JSON.stringify({ resources, tierData, navTags, bannerData, rankingList }),
+                body: JSON.stringify({ resources, tierData, navTags, bannerData, rankingList, bpList }),
             });
             const result = await res.json();
             if (!res.ok) {
@@ -446,7 +452,7 @@
         document.querySelectorAll('.tab-item').forEach(el => {
             const t = el.innerText;
             el.classList.toggle('active',
-                (page==='community'&&t.includes('社区'))||(page==='tier'&&t.includes('梯度'))||(page==='ranking'&&t.includes('积分'))
+                (page==='community'&&t.includes('社区'))||(page==='tier'&&t.includes('梯度'))||(page==='ranking'&&t.includes('积分'))||(page==='bp'&&t.includes('BP'))
             );
         });
         
@@ -683,6 +689,172 @@
         input.value='';
     }
 
+
+    // ===== 对战BP =====
+    let bpEditMode = null; // null | 'new' | idx(编辑)
+    let bpEditData = null; // 当前编辑中的BP数据
+
+    function renderBP() {
+        const c = document.getElementById('page-bp');
+        let h = '';
+        if (isAdmin) {
+            h += '<button onclick="bpNewMatch()" style="width:100%;padding:12px;border:2px dashed #ff6699;background:#fff5f8;border-radius:12px;color:#ff6699;font-size:14px;font-weight:bold;cursor:pointer;margin-bottom:12px;">➕ 新建BP对战</button>';
+        }
+        if (!bpList.length) {
+            h += '<div style="text-align:center;color:#ccc;padding:40px;">暂无BP数据</div>';
+            c.innerHTML = h; return;
+        }
+        bpList.forEach((m, idx) => {
+            const open = bpOpenIdx === idx;
+            h += `<div class="bp-match-card">
+                <div class="bp-match-header" onclick="bpToggle(${idx})">
+                    <span class="bp-match-title">⚔️ ${m.title||'未命名对战'}</span>
+                    ${isAdmin ? `<button class="bp-admin-btn" style="color:#1e90ff;border-color:#1e90ff;" onclick="event.stopPropagation();bpEdit(${idx})">✏️</button>
+                    <button class="bp-admin-btn" style="color:red;border-color:red;" onclick="event.stopPropagation();bpDel(${idx})">🗑️</button>` : ''}
+                    <span style="color:var(--primary);font-size:18px;margin-left:6px;">${open?'▲':'▼'}</span>
+                </div>
+                ${open ? bpDetail(m) : ''}
+            </div>`;
+        });
+        c.innerHTML = h;
+    }
+
+    function bpDetail(m) {
+        const renderCards = (cards, bans, side) => {
+            const color = side==='plant' ? '#4caf50' : '#9c27b0';
+            const label = side==='plant' ? '🌿 植物方' : '🧟 僵尸方';
+            let h = `<div class="bp-side-label" style="color:${color}">${label}</div>`;
+            h += '<div class="bp-cards-row">';
+            // 6张选卡
+            for (let i=0; i<6; i++) {
+                const card = cards[i];
+                if (card) {
+                    h += `<div class="bp-card"><img src="${card}" onerror="this.style.display='none'"></div>`;
+                } else {
+                    h += '<div class="bp-card empty"></div>';
+                }
+            }
+            h += '</div>';
+            // 2张ban位
+            h += '<div style="display:flex;gap:6px;margin-top:6px;">';
+            for (let i=0; i<2; i++) {
+                const ban = bans[i];
+                if (ban) {
+                    h += `<div class="bp-card ban"><img src="${ban}" onerror="this.style.display='none'"></div>`;
+                } else {
+                    h += '<div class="bp-card ban empty"></div>';
+                }
+            }
+            h += '<span style="font-size:11px;color:#999;align-self:center;margin-left:4px;">BAN位</span></div>';
+            return h;
+        };
+        return `<div class="bp-body">
+            <div class="bp-section">${renderCards(m.plantCards||[], m.plantBans||[], 'plant')}</div>
+            <div class="bp-divider"></div>
+            <div class="bp-section">${renderCards(m.zombieCards||[], m.zombieBans||[], 'zombie')}</div>
+        </div>`;
+    }
+
+    function bpToggle(idx) { bpOpenIdx = bpOpenIdx===idx?null:idx; renderBP(); }
+
+    function bpDel(idx) {
+        if (!confirm('确定删除这场BP？')) return;
+        bpList.splice(idx,1);
+        if (bpOpenIdx >= bpList.length) bpOpenIdx = null;
+        renderBP();
+    }
+
+    function bpNewMatch() {
+        bpEditData = { title:'', plantCards:['','','','','',''], plantBans:['',''], zombieCards:['','','','','',''], zombieBans:['',''] };
+        bpEditMode = 'new';
+        bpShowEditor();
+    }
+
+    function bpEdit(idx) {
+        const m = bpList[idx];
+        bpEditData = {
+            title: m.title||'',
+            plantCards: [...(m.plantCards||['','','','','',''])].concat(['','','','','','']).slice(0,6),
+            plantBans: [...(m.plantBans||['',''])].concat(['','']).slice(0,2),
+            zombieCards: [...(m.zombieCards||['','','','','',''])].concat(['','','','','','']).slice(0,6),
+            zombieBans: [...(m.zombieBans||['',''])].concat(['','']).slice(0,2),
+        };
+        bpEditMode = idx;
+        bpShowEditor();
+    }
+
+    function bpShowEditor() {
+        const d = bpEditData;
+        const renderEditCards = (arr, field, isBan) => {
+            return arr.map((url, i) => `
+                <div class="bp-edit-card" id="bpcard-${field}-${i}" onclick="bpPromptUrl('${field}',${i})">
+                    ${url ? `<img src="${url}" onerror="this.style.display='none'"><span class="del-x" onclick="event.stopPropagation();bpClearCard('${field}',${i})">×</span>` : '+'}
+                </div>`).join('');
+        };
+        document.getElementById('bp-edit-overlay').innerHTML = `
+            <div class="bp-edit-box">
+                <div class="bp-edit-title">📝 编辑BP对战</div>
+                <div class="bp-edit-section">
+                    <label>比赛标题</label>
+                    <input id="bp-title-input" class="edit-input" value="${d.title}" placeholder="输入比赛名称">
+                </div>
+                <div class="bp-edit-section">
+                    <label style="color:#4caf50;font-weight:bold;">🌿 植物方 — 选卡（6张）</label>
+                    <div class="bp-edit-cards">${renderEditCards(d.plantCards,'plantCards',false)}</div>
+                </div>
+                <div class="bp-edit-section">
+                    <label style="color:#4caf50;">🚫 植物方 BAN位（2张）</label>
+                    <div class="bp-edit-cards">${renderEditCards(d.plantBans,'plantBans',true)}</div>
+                </div>
+                <div class="bp-edit-section">
+                    <label style="color:#9c27b0;font-weight:bold;">🧟 僵尸方 — 选卡（6张）</label>
+                    <div class="bp-edit-cards">${renderEditCards(d.zombieCards,'zombieCards',false)}</div>
+                </div>
+                <div class="bp-edit-section">
+                    <label style="color:#9c27b0;">🚫 僵尸方 BAN位（2张）</label>
+                    <div class="bp-edit-cards">${renderEditCards(d.zombieBans,'zombieBans',true)}</div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:15px;">
+                    <button onclick="bpSaveEdit()" style="flex:2;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-weight:bold;cursor:pointer;">保存发布</button>
+                    <button onclick="bpCancelEdit()" style="flex:1;padding:12px;background:#f0f0f0;border:none;border-radius:10px;cursor:pointer;">取消</button>
+                </div>
+            </div>`;
+        document.getElementById('bp-edit-overlay').style.display = 'block';
+    }
+
+    function bpPromptUrl(field, i) {
+        const cur = bpEditData[field][i];
+        const url = prompt('输入图片URL（图床链接）', cur||'');
+        if (url === null) return;
+        bpEditData[field][i] = url.trim();
+        bpShowEditor();
+    }
+
+    function bpClearCard(field, i) {
+        bpEditData[field][i] = '';
+        bpShowEditor();
+    }
+
+    function bpSaveEdit() {
+        const title = document.getElementById('bp-title-input').value.trim();
+        if (!title) { alert('请输入比赛标题'); return; }
+        bpEditData.title = title;
+        if (bpEditMode === 'new') {
+            bpList.unshift({...bpEditData});
+            bpOpenIdx = 0;
+        } else {
+            bpList[bpEditMode] = {...bpEditData};
+        }
+        bpCancelEdit();
+        renderBP();
+    }
+
+    function bpCancelEdit() {
+        document.getElementById('bp-edit-overlay').style.display = 'none';
+        bpEditMode = null;
+        bpEditData = null;
+    }
+
     function renderAll() {
         if(activePage === 'community') {
             renderBanner();
@@ -694,6 +866,8 @@
                 renderTier();
             } else if(activePage === 'ranking') {
                 renderRanking();
+            } else if(activePage === 'bp') {
+                renderBP();
             }
         }
     }
