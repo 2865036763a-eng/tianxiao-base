@@ -136,6 +136,26 @@
         .stat-val { font-weight: 800; font-size: 16px; color: #1e293b; }
 
         @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* ===== 对战BP ===== */
+        .bp-match-card { background:rgba(255,255,255,0.92); border-radius:14px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.06); overflow:hidden; }
+        .bp-match-header { display:flex; align-items:center; padding:12px 15px; cursor:pointer; }
+        .bp-match-title { font-size:15px; font-weight:bold; flex:1; color:#222; }
+        .bp-admin-btn { margin-left:6px; border:1px solid; background:none; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
+        .bp-body { padding:10px 12px 12px; }
+        .bp-vs-row { display:flex; gap:8px; align-items:flex-start; }
+        .bp-side { flex:1; min-width:0; }
+        .bp-side-label { font-size:12px; font-weight:bold; margin-bottom:5px; }
+        .bp-cards-row { display:flex; flex-wrap:wrap; gap:4px; }
+        .bp-card { width:44px; height:56px; border-radius:6px; background:#f0f0f0; border:1.5px solid #ddd; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
+        .bp-card img { width:100%; height:100%; object-fit:cover; }
+        .bp-card.empty { background:repeating-linear-gradient(45deg,#f5f5f5,#f5f5f5 4px,#ececec 4px,#ececec 8px); }
+        .bp-card.ban { width:36px; height:46px; border-radius:5px; }
+        .bp-card.ban img { filter:grayscale(60%) opacity(0.7); }
+        .bp-card.ban::after { content:'✕'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:rgba(200,0,0,0.75); font-size:18px; font-weight:900; pointer-events:none; }
+        .bp-ban-row { display:flex; align-items:center; gap:4px; margin-top:5px; }
+        .bp-ban-label { font-size:10px; color:#999; white-space:nowrap; }
+        .bp-divider-v { width:1px; background:#eee; align-self:stretch; margin:0 4px; flex-shrink:0; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -720,38 +740,39 @@
     }
 
     function bpDetail(m) {
-        const renderCards = (cards, bans, side) => {
+        const renderSide = (cards, bans, side) => {
             const color = side==='plant' ? '#4caf50' : '#9c27b0';
             const label = side==='plant' ? '🌿 植物方' : '🧟 僵尸方';
-            let h = `<div class="bp-side-label" style="color:${color}">${label}</div>`;
-            h += '<div class="bp-cards-row">';
             // 6张选卡
+            let cardHtml = '<div class="bp-cards-row">';
             for (let i=0; i<6; i++) {
-                const card = cards[i];
-                if (card) {
-                    h += `<div class="bp-card"><img src="${card}" onerror="this.style.display='none'"></div>`;
-                } else {
-                    h += '<div class="bp-card empty"></div>';
-                }
+                const c = cards[i];
+                cardHtml += c
+                    ? `<div class="bp-card"><img src="${c}" onerror="this.style.display='none'"></div>`
+                    : '<div class="bp-card empty"></div>';
             }
-            h += '</div>';
+            cardHtml += '</div>';
             // 2张ban位
-            h += '<div style="display:flex;flex-direction:row;gap:5px;margin-top:6px;">';
+            let banHtml = '<div class="bp-ban-row">';
+            banHtml += '<span class="bp-ban-label">BAN</span>';
             for (let i=0; i<2; i++) {
-                const ban = bans[i];
-                if (ban) {
-                    h += `<div class="bp-card ban"><img src="${ban}" onerror="this.style.display='none'"></div>`;
-                } else {
-                    h += '<div class="bp-card ban empty"></div>';
-                }
+                const b = bans[i];
+                banHtml += b
+                    ? `<div class="bp-card ban"><img src="${b}" onerror="this.style.display='none'"></div>`
+                    : '<div class="bp-card ban empty"></div>';
             }
-            h += '<span style="font-size:11px;color:#999;align-self:center;margin-left:4px;">BAN位</span></div>';
-            return h;
+            banHtml += '</div>';
+            return `<div class="bp-side">
+                <div class="bp-side-label" style="color:${color}">${label}</div>
+                ${cardHtml}${banHtml}
+            </div>`;
         };
         return `<div class="bp-body">
-            <div class="bp-section">${renderCards(m.plantCards||[], m.plantBans||[], 'plant')}</div>
-            <div class="bp-divider"></div>
-            <div class="bp-section">${renderCards(m.zombieCards||[], m.zombieBans||[], 'zombie')}</div>
+            <div class="bp-vs-row">
+                ${renderSide(m.plantCards||[], m.plantBans||[], 'plant')}
+                <div class="bp-divider-v"></div>
+                ${renderSide(m.zombieCards||[], m.zombieBans||[], 'zombie')}
+            </div>
         </div>`;
     }
 
