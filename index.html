@@ -325,17 +325,8 @@
   </footer>
 
   <script>
-    // 自动从当前域名推导 Worker API 地址
-    // 例如 pvzdlc.qzz.io → pvz-api.pvzdlc.qzz.io
-    const WORKER_URL = (() => {
-      const host = location.host;
-      const parts = host.split('.');
-      if (parts.length >= 2) {
-        parts[0] = 'pvz-api';
-        return 'https://' + parts.join('.');
-      }
-      return 'https://pvz-api.pvzdlc.qzz.io';
-    })();
+    // Worker API 地址
+    const WORKER_URL = 'https://pvz-api.' + location.host;
 
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
