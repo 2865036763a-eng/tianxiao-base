@@ -325,10 +325,17 @@
   </footer>
 
   <script>
-    // ==================== 配置 ====================
-    // 替换为你的 Cloudflare Worker 地址（部署 Worker 后填入）
-    const WORKER_URL = 'https://r2-imagebed.your-worker-subdomain.workers.dev';
-    // =============================================
+    // 自动从当前域名推导 Worker API 地址
+    // 例如 pvzdlc.qzz.io → pvz-api.pvzdlc.qzz.io
+    const WORKER_URL = (() => {
+      const host = location.host;
+      const parts = host.split('.');
+      if (parts.length >= 2) {
+        parts[0] = 'pvz-api';
+        return 'https://' + parts.join('.');
+      }
+      return 'https://pvz-api.pvzdlc.qzz.io';
+    })();
 
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
