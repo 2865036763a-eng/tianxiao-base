@@ -154,6 +154,21 @@ footer{margin-top:auto;padding-top:40px;text-align:center;color:var(--text2);fon
   </div>
 </div>
 
+<!-- Move Image Modal -->
+<div class="modal-overlay" id="moveModal">
+  <div class="modal">
+    <h3>移动图片</h3>
+    <p>选择目标相册</p>
+    <select id="moveFolderSelect" class="folder-select" style="margin-bottom:14px;width:100%;max-width:none;padding:12px;">
+      <option value="默认">默认</option>
+    </select>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeMoveModal()">取消</button>
+      <button class="primary" onclick="confirmMove()">确认移动</button>
+    </div>
+  </div>
+</div>
+
 <footer>图片存储于 Cloudflare R2 · 请勿上传违规内容</footer>
 
 <script>
@@ -332,18 +347,32 @@ async function loadFolders(){
 function buildGalleryFilters(uploads){
   const folders=new Set();
   uploads.forEach(u=>{if(u.folder)folders.add(u.folder)});
+  galleryFilters.innerHTML='';
+
   const allBtn=document.createElement('button');
   allBtn.className='gallery-filter'+(currentGalleryFolder===''?' active':'');
   allBtn.textContent='全部';allBtn.dataset.folder='';
   allBtn.onclick=()=>{currentGalleryFolder='';updateGalleryFilterActive();renderGallery(uploads,'')};
-  galleryFilters.innerHTML='';
   galleryFilters.appendChild(allBtn);
+
   folders.forEach(f=>{
+    const wrap=document.createElement('span');
+    wrap.style.cssText='display:inline-flex;align-items:center;gap:2px;position:relative;';
+
     const btn=document.createElement('button');
     btn.className='gallery-filter'+(currentGalleryFolder===f?' active':'');
     btn.textContent=f;btn.dataset.folder=f;
     btn.onclick=()=>{currentGalleryFolder=f;updateGalleryFilterActive();renderGallery(uploads,f)};
-    galleryFilters.appendChild(btn);
+
+    const delBtn=document.createElement('button');
+    delBtn.innerHTML='&times;';
+    delBtn.title='删除文件夹';
+    delBtn.style.cssText='width:18px;height:18px;line-height:16px;padding:0;font-size:14px;background:rgba(239,68,68,0.15);color:var(--error);border:1px solid var(--error);border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:opacity 0.2s;';
+    delBtn.onclick=()=>deleteFolder(f);
+
+    wrap.appendChild(btn);
+    wrap.appendChild(delBtn);
+    galleryFilters.appendChild(wrap);
   });
 }
 
@@ -365,7 +394,7 @@ function renderGallery(uploads,folder){
     div.className='gallery-item';
     div.dataset.key=item.key;
     const date=item.lastModified?new Date(item.lastModified).toLocaleDateString('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
-    div.innerHTML=`<img src="${item.url}" alt="${item.key}" loading="lazy"><div class="info"><div class="folder-label">${item.folder||'默认'}</div><div class="date">${date}</div><div class="gallery-actions"><button onclick="copyGalleryUrl('${item.url}')">复制</button><button class="del" onclick="deleteImage('${item.key}',this)">删除</button></div></div>`;
+    div.innerHTML=`<img src="${item.url}" alt="${item.key}" loading="lazy"><div class="info"><div class="folder-label">${item.folder||'默认'}</div><div class="date">${date}</div><div class="gallery-actions"><button onclick="copyGalleryUrl('${item.url}')">复制</button><button onclick="showMoveModal('${item.key}')">移动</button><button class="del" onclick="deleteImage('${item.key}',this)">删除</button></div></div>`;
     galleryGrid.appendChild(div);
   });
 }
@@ -382,10 +411,59 @@ async function deleteImage(key,btn){
   }catch{showToast('删除失败','error');btn.textContent='删除';btn.disabled=false}
 }
 
+async function deleteFolder(folderName){
+  if(!confirm(`删除相册 "${folderName}"？\n其中的 ${folderName === '默认' ? '' : '图片将移动到【默认】文件夹'}！`))return;
+  try{
+    const res=await fetch(`${WORKER_URL}/delete-folder?password=${encodeURIComponent(authToken)}&folder=${encodeURIComponent(folderName)}`,{method:'POST'});
+    const data=await res.json();
+    if(data.success){
+      showToast(`相册 "${folderName}" 已删除，${data.moved} 张图片已移至默认`,'success');
+      if(currentGalleryFolder===folderName)currentGalleryFolder='';
+      loadGallery();
+      loadFolders();
+    }else{
+      showToast(data.error||'删除失败','error');
+    }
+  }catch{showToast('删除失败','error')}
+}
+
+let moveTargetKey='';
+function showMoveModal(key){
+  moveTargetKey=key;
+  const select=document.getElementById('moveFolderSelect');
+  select.innerHTML='<option value="默认">默认</option>';
+  const currentFolder=key.split('/')[0];
+  Array.from(folderSelect.options).forEach(opt=>{
+    if(opt.value && opt.value!==currentFolder){
+      const o=document.createElement('option');
+      o.value=opt.value;o.textContent=opt.value;
+      select.appendChild(o);
+    }
+  });
+  document.getElementById('moveModal').classList.add('show');
+}
+function closeMoveModal(){document.getElementById('moveModal').classList.remove('show');moveTargetKey='';}
+async function confirmMove(){
+  if(!moveTargetKey)return;
+  const targetFolder=document.getElementById('moveFolderSelect').value;
+  try{
+    const res=await fetch(`${WORKER_URL}/move?password=${encodeURIComponent(authToken)}&key=${encodeURIComponent(moveTargetKey)}&folder=${encodeURIComponent(targetFolder)}`,{method:'POST'});
+    const data=await res.json();
+    if(data.success){
+      showToast('图片已移动到 "'+targetFolder+'"','success');
+      closeMoveModal();
+      loadGallery();
+    }else{
+      showToast(data.error||'移动失败','error');
+    }
+  }catch{showToast('移动失败','error')}
+}
+
 // Close modals on overlay click
 passwordModal.addEventListener('click',e=>{if(e.target===passwordModal)closePasswordModal()});
 folderModal.addEventListener('click',e=>{if(e.target===folderModal)closeFolderModal()});
 galleryModal.addEventListener('click',e=>{if(e.target===galleryModal)closeGalleryModal()});
+document.getElementById('moveModal').addEventListener('click',e=>{if(e.target===document.getElementById('moveModal'))closeMoveModal()});
 
 // 页面加载时拉取文件夹列表
 if(authToken)loadFolders();
