@@ -173,7 +173,8 @@ footer{margin-top:auto;padding-top:40px;text-align:center;color:var(--text2);fon
 <script>
 const WORKER_URL='https://pvz-api.'+location.host;
 let authToken=sessionStorage.getItem('imagebed_token')||'';
-let passwordCallback=null;
+let passwordQueue=[];
+let passwordResolve=null;
 let selectedFiles=[];
 let currentGalleryFolder='';
 
@@ -215,20 +216,40 @@ async function doCopy(text){
   }catch(e){return false;}
 }
 
-// ===== 密码验证 =====
-function showPasswordModal(callback){passwordCallback=callback;passwordInput.value='';passwordError.classList.remove('show');passwordModal.classList.add('show');passwordInput.focus()}
-function closePasswordModal(){passwordModal.classList.remove('show');passwordCallback=null}
+// ===== 密码验证（Promise + 队列，防止回调被覆盖） =====
+function showPasswordModal(){
+  passwordInput.value='';
+  passwordError.classList.remove('show');
+  passwordModal.classList.add('show');
+  passwordInput.focus();
+}
+function closePasswordModal(){passwordModal.classList.remove('show')}
+
 async function submitPassword(){
   const pwd=passwordInput.value.trim();
   if(!pwd)return;
   try{
     const res=await fetch(`${WORKER_URL}/uploads?password=${encodeURIComponent(pwd)}`);
-    if(res.ok){authToken=pwd;sessionStorage.setItem('imagebed_token',pwd);closePasswordModal();if(passwordCallback)passwordCallback()}
-    else{passwordError.classList.add('show')}
+    if(res.ok){
+      authToken=pwd;
+      sessionStorage.setItem('imagebed_token',pwd);
+      closePasswordModal();
+      // 执行队列中所有等待的回调
+      const queue=passwordQueue.splice(0);
+      if(passwordResolve){passwordResolve(true);passwordResolve=null;}
+      queue.forEach(cb=>cb());
+    }else{passwordError.classList.add('show')}
   }catch{passwordError.classList.add('show')}
 }
 passwordInput.addEventListener('keypress',e=>{if(e.key==='Enter')submitPassword()});
-function ensureAuth(callback){if(authToken)callback();else showPasswordModal(callback)}
+
+function ensureAuth(callback){
+  if(authToken){callback();return;}
+  // 加入队列而不是覆盖
+  passwordQueue.push(callback);
+  // 如果密码框没显示，显示它
+  if(!passwordModal.classList.contains('show')) showPasswordModal();
+}
 
 // ===== 新建相册 =====
 document.getElementById('newFolderBtn').addEventListener('click',()=>{
