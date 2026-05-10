@@ -90,7 +90,7 @@ footer{margin-top:auto;padding-top:40px;text-align:center;color:var(--text2);fon
 <div class="toolbar">
   <div class="toolbar-left">
     <select class="folder-select" id="folderSelect">
-      <option value="">默认</option>
+      <option value="默认">默认</option>
     </select>
     <button class="toolbar-btn" id="newFolderBtn" style="padding:8px 12px;font-size:12px;">+ 新建</button>
   </div>
@@ -160,7 +160,6 @@ footer{margin-top:auto;padding-top:40px;text-align:center;color:var(--text2);fon
     <h3>移动图片</h3>
     <p>选择目标相册</p>
     <select id="moveFolderSelect" class="folder-select" style="margin-bottom:14px;width:100%;max-width:none;padding:12px;">
-      <option value="默认">默认</option>
     </select>
     <div class="modal-actions">
       <button class="secondary" onclick="closeMoveModal()">取消</button>
@@ -173,7 +172,7 @@ footer{margin-top:auto;padding-top:40px;text-align:center;color:var(--text2);fon
 
 <script>
 const WORKER_URL='https://pvz-api.'+location.host;
-let authToken=localStorage.getItem('imagebed_token')||'';
+let authToken=sessionStorage.getItem('imagebed_token')||'';
 let passwordCallback=null;
 let selectedFiles=[];
 let currentGalleryFolder='';
@@ -195,6 +194,27 @@ const galleryGrid=document.getElementById('galleryGrid');
 const galleryFilters=document.getElementById('galleryFilters');
 const folderSelect=document.getElementById('folderSelect');
 
+// ===== 通用复制函数（兼容国产浏览器）=====
+async function doCopy(text){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch(e){}
+  // 降级方案：用传统方式
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text;
+    ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';
+    document.body.appendChild(ta);
+    ta.focus();ta.select();
+    const ok=document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){return false;}
+}
+
 // ===== 密码验证 =====
 function showPasswordModal(callback){passwordCallback=callback;passwordInput.value='';passwordError.classList.remove('show');passwordModal.classList.add('show');passwordInput.focus()}
 function closePasswordModal(){passwordModal.classList.remove('show');passwordCallback=null}
@@ -203,7 +223,7 @@ async function submitPassword(){
   if(!pwd)return;
   try{
     const res=await fetch(`${WORKER_URL}/uploads?password=${encodeURIComponent(pwd)}`);
-    if(res.ok){authToken=pwd;localStorage.setItem('imagebed_token',pwd);closePasswordModal();if(passwordCallback)passwordCallback()}
+    if(res.ok){authToken=pwd;sessionStorage.setItem('imagebed_token',pwd);closePasswordModal();if(passwordCallback)passwordCallback()}
     else{passwordError.classList.add('show')}
   }catch{passwordError.classList.add('show')}
 }
@@ -226,6 +246,7 @@ async function createFolder(){
 folderNameInput.addEventListener('keypress',e=>{if(e.key==='Enter')createFolder()});
 
 function addFolderOption(name){
+  if(name==='默认')return;
   const exists=Array.from(folderSelect.options).some(o=>o.value===name);
   if(!exists){
     const opt=document.createElement('option');
@@ -278,7 +299,7 @@ async function doUpload(){
       const res=await fetch(`${WORKER_URL}/upload?password=${encodeURIComponent(authToken)}&folder=${encodeURIComponent(folder)}`,{method:'POST',body:formData});
       const data=await res.json();
       if(data.success){showResult(data);showToast(`${file.name} 上传成功`,'success')}
-      else{showToast(data.error||`${file.name} 上传失败`,'error');if(data.error==='Unauthorized'){authToken='';localStorage.removeItem('imagebed_token')}}
+      else{showToast(data.error||`${file.name} 上传失败`,'error');if(data.error==='Unauthorized'){authToken='';sessionStorage.removeItem('imagebed_token')}}
     }catch{showToast(`${file.name} 上传失败`,'error')}
   }
   selectedFiles=[];previewsEl.innerHTML='';updateUploadBtn();
@@ -302,9 +323,9 @@ function showResult(data){
     });
   });
   card.querySelector('.copy-btn').addEventListener('click',async function(){
-    await navigator.clipboard.writeText(card.querySelector('code').textContent);
-    this.textContent='已复制';this.classList.add('copied');
-    setTimeout(()=>{this.textContent='复制';this.classList.remove('copied')},2000);
+    const ok=await doCopy(card.querySelector('code').textContent);
+    if(ok){this.textContent='已复制';this.classList.add('copied');setTimeout(()=>{this.textContent='复制';this.classList.remove('copied')},2000);}
+    else{showToast('复制失败，请手动复制','error');}
   });
   resultsEl.insertBefore(card,resultsEl.firstChild);
 }
@@ -333,13 +354,14 @@ async function loadFolders(){
     const data=await res.json();
     if(data.success){
       const currentVal=folderSelect.value;
-      folderSelect.innerHTML='<option value="">默认</option>';
+      folderSelect.innerHTML='<option value="默认">默认</option>';
       data.folders.forEach(f=>{
+        if(f==='默认')return;
         const opt=document.createElement('option');
         opt.value=f;opt.textContent=f;
         folderSelect.appendChild(opt);
       });
-      if(currentVal)folderSelect.value=currentVal;
+      if(currentVal&&currentVal!=='默认')folderSelect.value=currentVal;
     }
   }catch{}
 }
@@ -399,7 +421,7 @@ function renderGallery(uploads,folder){
   });
 }
 
-async function copyGalleryUrl(url){await navigator.clipboard.writeText(url);showToast('链接已复制','success')}
+async function copyGalleryUrl(url){const ok=await doCopy(url);if(ok)showToast('链接已复制','success');else showToast('复制失败，请手动复制','error');}
 async function deleteImage(key,btn){
   if(!confirm('确定删除这张图片？'))return;
   btn.textContent='删除中';btn.disabled=true;
@@ -431,8 +453,8 @@ let moveTargetKey='';
 function showMoveModal(key){
   moveTargetKey=key;
   const select=document.getElementById('moveFolderSelect');
-  select.innerHTML='<option value="默认">默认</option>';
   const currentFolder=key.split('/')[0];
+  select.innerHTML='';
   Array.from(folderSelect.options).forEach(opt=>{
     if(opt.value && opt.value!==currentFolder){
       const o=document.createElement('option');
