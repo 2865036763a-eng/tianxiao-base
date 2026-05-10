@@ -487,8 +487,8 @@ folderModal.addEventListener('click',e=>{if(e.target===folderModal)closeFolderMo
 galleryModal.addEventListener('click',e=>{if(e.target===galleryModal)closeGalleryModal()});
 document.getElementById('moveModal').addEventListener('click',e=>{if(e.target===document.getElementById('moveModal'))closeMoveModal()});
 
-// 页面加载时拉取文件夹列表
-if(authToken)loadFolders();
+// 页面加载时：需要密码后才能拉取文件夹列表
+ensureAuth(loadFolders);
 </script>
 </body>
 </html>
