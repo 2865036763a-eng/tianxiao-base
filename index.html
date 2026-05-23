@@ -171,7 +171,8 @@ footer{margin-top:auto;padding-top:40px;text-align:center;color:var(--text2);fon
 <footer>图片存储于 Cloudflare R2 · 请勿上传违规内容</footer>
 
 <script>
-const WORKER_URL='https://pvz-api.'+location.host;
+// Cloudflare Worker API 地址（必须与前端域名不同）
+const WORKER_URL='https://pvz.2865036763.workers.dev';
 let authToken=sessionStorage.getItem('imagebed_token')||'';
 let passwordQueue=[];
 let passwordResolve=null;
